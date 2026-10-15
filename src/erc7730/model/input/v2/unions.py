@@ -21,7 +21,7 @@ def field_discriminator(v: Any) -> str | None:
         return "reference"
     if has_any_property(v, "fields"):
         return "field_group"  # was "nested_fields" in v1
-    if has_any_property(v, "label", "format"):
+    if has_any_property(v, "label", "format", "path", "value"):
         return "field_description"
     return None
 
@@ -38,6 +38,29 @@ def field_parameters_discriminator(v: Any) -> str | None:
     :param v: deserialized raw data
     :return: the discriminator tag
     """
+    # Model instances retain the parent format's choice even for empty objects.
+    model_tags = {
+        "InputAddressNameParameters": "address_name",
+        "InputInteroperableAddressNameParameters": "interoperable_address_name",
+        "InputCallDataParameters": "call_data",
+        "InputTokenAmountParameters": "token_amount",
+        "InputTokenTickerParameters": "token_ticker",
+        "InputNftNameParameters": "nft_name",
+        "InputDateParameters": "date",
+        "InputUnitParameters": "unit",
+        "InputEnumParameters": "enum",
+        "ResolvedAddressNameParameters": "address_name",
+        "ResolvedInteroperableAddressNameParameters": "interoperable_address_name",
+        "ResolvedCallDataParameters": "call_data",
+        "ResolvedTokenAmountParameters": "token_amount",
+        "ResolvedTokenTickerParameters": "token_ticker",
+        "ResolvedNftNameParameters": "nft_name",
+        "ResolvedDateParameters": "date",
+        "ResolvedUnitParameters": "unit",
+        "ResolvedEnumParameters": "enum",
+    }
+    if (tag := model_tags.get(type(v).__name__)) is not None:
+        return tag
     if has_any_property(v, "tokenPath", "token", "nativeCurrencyAddress", "threshold", "message"):
         return "token_amount"
     if has_any_property(v, "encoding"):
