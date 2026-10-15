@@ -4,8 +4,8 @@
 [metadata]
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
-lock_version = "4.5.1"
-content_hash = "sha256:d7ccd938a2186850319d796daf72005b0b491482ebaf54e847829a9d23bb6323"
+lock_version = "4.5.0"
+content_hash = "sha256:4b95b4c1943abdedbf2234f104a95c1d7b7773a9f8f3bb45920998fe5bac75f5"
 
 [[metadata.targets]]
 requires_python = ">=3.12,<3.13"
@@ -1190,6 +1190,20 @@ dependencies = [
 files = [
     {file = "rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"},
     {file = "rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"},
+]
+
+[[package]]
+name = "rlp"
+version = "5.0.0"
+requires_python = "<4,>=3.10"
+summary = "rlp: A package for Recursive Length Prefix encoding and decoding"
+groups = ["default"]
+dependencies = [
+    "eth-utils>=2",
+]
+files = [
+    {file = "rlp-5.0.0-py3-none-any.whl", hash = "sha256:9525fb895d3a6540b7401eadd11c1b64740a5eccb82e543ac7e9735d319b0977"},
+    {file = "rlp-5.0.0.tar.gz", hash = "sha256:ae8ac791160c160e270f9c7df76e68f4d42bb86a13726d807b9357c312d0bac4"},
 ]
 
 [[package]]
