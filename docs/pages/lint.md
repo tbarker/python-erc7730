@@ -47,7 +47,7 @@
 - **Message**: `Selector <selector> not found in ABI.`
 - **Description**: Extra display format for unknown selector
 
-### Optional Display field missing
+### Optional Display field missing (legacy V1 only)
 - **Level**: ℹ️ Informational
  - **Message**: ``No display field is defined for path <path> in <type/selector>. If intentionally excluded, please add it to `excluded` list to avoid this warning.``
 - **Description**: No display format defined for optional field.
@@ -70,3 +70,23 @@ Linter tries to guess the type of the contract, and provides warning about missi
 ### Expected Display field missing
 - **Level**: ⚠️ Warning 
  - **Message**: `Contract detected as Permit but no spender/amount/expiration field displayed`
+
+(natspec-and-intent-checks)=
+## V2 and NatSpec checks
+
+`lint --strict` opts into published V2 schema, path, formatter-type and intent checks.
+Ordinary lint retains the existing ABI comparisons and coverage warnings.
+Inputs may be omitted from display. Each format needs a nonblank static intent,
+and each interpolated reference needs exactly one always-visible formatter.
+
+[NatSpec](natspec.md) source checks run during generation. Errors stop generation
+with `ValueError` (CLI exit 1); warnings identify skipped overrides or wording to review.
+
+| Diagnostic | Fix |
+| --- | --- |
+| Missing static intent | Add `clearsig-intent` or a plain notice. |
+| Invalid intent template | Use supported `{path}` references with matching visible formatters. |
+| Templated parameter label | Supply a static `clearsig-label`. |
+| Malformed field assignments | Correct the syntax; the entire affected tag value is skipped. |
+| Invalid formatter or parameter override | Correct the value; invalid overrides warn and are skipped. |
+
