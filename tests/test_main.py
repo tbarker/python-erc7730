@@ -3,6 +3,7 @@ from pathlib import Path
 from shutil import copytree
 
 import pytest
+from rich.text import Text
 from typer.testing import CliRunner
 
 from erc7730.main import app
@@ -24,6 +25,18 @@ def test_help() -> None:
     assert "ERC-7730" in out
     assert "convert" in out
     assert "lint" in out
+    assert "natspec" in out
+    assert "generate" in out
+
+
+@pytest.mark.parametrize("color", [False, True])
+def test_natspec_command_help(color: bool) -> None:
+    result = runner.invoke(app, ["natspec", "--help"], color=color, env={"FORCE_COLOR": "1"})
+    assert result.exit_code == 0
+    output = Text.from_ansi(result.stdout).plain
+    assert "--natspec" in output
+    assert "--chain-id" in output
+    assert runner.invoke(app, ["generate", "--help"]).exit_code == 0
 
 
 @pytest.mark.parametrize("model_type", list(ERC7730ModelType))
@@ -142,7 +155,7 @@ def test_calldata_fails_on_conversion_error(tmp_path: Path) -> None:
         },
         "display": {
             "formats": {
-                "deposit(uint256 assets, uint32 marketId)": {
+                "deposit(uint256 assets,uint32 marketId)": {
                     "intent": "Deposit",
                     "fields": [
                         {

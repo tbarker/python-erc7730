@@ -1,0 +1,80 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "recipients",
+          "type": "uint256[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "percentages",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "distribute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "send",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "distribute(uint256[],uint256[])": {
+        "custom:clearsig-format": "recipients=raw percentages=raw",
+        "custom:clearsig-group": "fees=\"Recipients and Fees\" fields=(recipients,percentages) iteration=bundled",
+        "params": {
+          "percentages": "Fee",
+          "recipients": "Recipient"
+        }
+      },
+      "send(address,address,uint256)": {
+        "custom:clearsig-format": "amount=raw maker=addressName recipient=addressName",
+        "custom:clearsig-group": "parties=\"Parties\" fields=(recipient,maker)",
+        "params": {
+          "amount": "Amount",
+          "maker": "Sender",
+          "recipient": "Recipient"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "distribute(uint256[],uint256[])": {
+        "notice": "Distribute fees"
+      },
+      "send(address,address,uint256)": {
+        "notice": "Send tokens"
+      }
+    },
+    "version": 1
+  }
+}

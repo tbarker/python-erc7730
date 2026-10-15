@@ -80,18 +80,26 @@ It can be called with single files or directories, in which case all descriptors
 
 Use `--skip-abi-validation` to disable external ABI comparisons against Sourcify/Etherscan (useful for offline runs or faster local checks).
 
+Use `--strict` for published V2 schema, local type and intent checks.
+
 ### `erc7730 generate`
 
-The `generate` command bootstraps a new descriptor file from ABIs or message schemas:
+The existing command generates V1 descriptors and retains `--legal-name`.
+
+(cli-natspec)=
+### `erc7730 natspec`
+
+The `natspec` command bootstraps a **v2** descriptor from ABIs or message schemas.
+It emits an explicit v2 `$schema`; there is no v1 generation mode:
 ```shell
 # fetch ABIs from sourcify/etherscan and generate a new calldata descriptor
-erc7730 generate --chain-id=1 --address=0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45
+erc7730 natspec --chain-id=1 --address=0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45
 
 # generate a new calldata descriptor using given ABI file
-erc7730 generate --chain-id=1 --address=0x0000000000000000000000000000000000000000 --abi abis.json
+erc7730 natspec --chain-id=1 --address=0x0000000000000000000000000000000000000000 --abi abis.json
 
 # generate a new EIP-712 descriptor using given schema file
-erc7730 generate --chain-id=1 --address=0x0000000000000000000000000000000000000000 --schema schemas.json
+erc7730 natspec --chain-id=1 --address=0x0000000000000000000000000000000000000000 --schema schemas.json
 ```
 
 ABIs are fetched from [Sourcify](https://sourcify.dev) first, which requires no API key. If the contract is not
@@ -103,6 +111,30 @@ export ETHERSCAN_API_KEY=XXXXXX
 
 Please note that while the generator does its best to guess the right format based on fields name/type, the generated
 descriptor should be considered a starting point to refine.
+
+#### Compiler NatSpec overlay
+
+```shell
+erc7730 natspec --chain-id 1 --address 0x0000000000000000000000000000000000000001 \
+ --natspec out/Token.sol/Token.json --owner "Example" --url https://example.com \
+ > calldata-token.json
+```
+
+Use `--natspec PATH` for a compiler artifact, or `--abi`, `--userdoc` and `--devdoc`
+for separate files. `--config PATH` selects project settings; otherwise the nearest
+`erc7730.toml` is used. Warnings go to stderr; generation errors exit 1 without JSON.
+Configuration is read from `[generate]` in `erc7730.toml`.
+See the [NatSpec guide](natspec.md) for annotation syntax, defaults and examples.
+
+#### EIP-712 domain constraints
+
+`--eip712-domain` adds domain constraints to generation from `--schema` or
+[annotated compiler ABI](eip-712-schema-bridge), alongside the chain/address binding:
+
+```shell
+erc7730 natspec --chain-id 1 --address 0x1111111111111111111111111111111111111111 \
+ --schema message-schema.json --eip712-domain domain.json
+```
 
 ### `erc7730 convert`
 

@@ -1,0 +1,25 @@
+{
+  "context": {
+    "contract": {
+      "deployments": [
+        {
+          "chainId": 1,
+          "address": "0x00112233445566778899AABBCCDDEEFF00112233"
+        },
+        {
+          "chainId": 137,
+          "address": "0x00112233445566778899AABBCCDDEEFF00112233"
+        },
+        {
+          "chainId": 42161,
+          "address": "0x00112233445566778899AABBCCDDEEFF00112233"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "info": {
+      "url": "https://example.io/"
+    }
+  }
+}
