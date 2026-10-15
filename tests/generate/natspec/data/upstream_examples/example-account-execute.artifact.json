@@ -1,0 +1,59 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "1f7c4a9997ab6eeb3e6ce6b671ed418de8cdb2c83ba56a2d339a6227aa0290c7",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "execute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Smart Account",
+    "custom:clearsig-format": "data=calldata",
+    "custom:clearsig-url": "https://eips.ethereum.org/EIPS/eip-4337",
+    "kind": "dev",
+    "methods": {
+      "execute(address,uint256,bytes)": {
+        "custom:clearsig-amount-path": "data=\"#.value\"",
+        "custom:clearsig-callee-path": "data=\"#.to\"",
+        "custom:clearsig-format": "to=addressName",
+        "custom:clearsig-intent": "Execute Transaction",
+        "custom:clearsig-types": "to=[\"wallet\",\"eoa\",\"contract\",\"token\"]",
+        "params": {
+          "data": "Call Data",
+          "to": "To",
+          "value": "Value"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "execute(address,uint256,bytes)": {
+        "notice": "Execute transaction to `to` with `value` ETH"
+      }
+    },
+    "version": 1
+  }
+}

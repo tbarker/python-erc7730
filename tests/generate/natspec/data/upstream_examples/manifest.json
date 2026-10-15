@@ -1,0 +1,91 @@
+{
+  "upstream_commit": "30bfdf9cd3c6c31eb180dded09c2e162a2c248e2",
+  "examples": {
+    "example-account-execute": {
+      "source": "ExampleAccountExecute.sol",
+      "contract": "ExampleAccountExecute",
+      "fragment": false,
+      "substitutions": {
+        "0xYourImplementationAddress": "0x1111111111111111111111111111111111111111"
+      },
+      "upstream_sha256": "e8136f9d46d7885b6013cf352906fae939f6f826e0cc3f042db410732e05abd2"
+    },
+    "example-array-iteration": {
+      "source": "ExampleArrayIteration.sol",
+      "contract": "ExampleArrayIteration",
+      "fragment": false,
+      "substitutions": {},
+      "upstream_sha256": "7a7f74e28489f11baa2a7372cc7ba139d2cdd8e15aa88351c03828405a6b9d00",
+      "fixture_sha256": "fe014c0491cf66a3df0f9253e89bccc00e97cb71fb7834d10e2219b826ec386a",
+      "correction": "Added always-visible formatters for interpolated references; see the fixture $comment. upstream_sha256 retains the published source digest."
+    },
+    "example-eip712": {
+      "source": "ExampleEip712.sol",
+      "contract": "ExampleEip712",
+      "fragment": false,
+      "substitutions": {
+        "0x0000000000112233445566778899aabbccddeeff00": "0x00000000112233445566778899aabbccddeeff00"
+      },
+      "upstream_sha256": "5768cc8701ede7917707ae4a659a6832997557fca2869a4574c755aa7c93bcec"
+    },
+    "example-erc20": {
+      "source": "ExampleErc20.sol",
+      "contract": "ExampleErc20",
+      "fragment": true,
+      "substitutions": {},
+      "upstream_sha256": "62aed6475b47123335bb90feb4951716417c5b17aa000fae5d87f5c7fb4caf29"
+    },
+    "example-include": {
+      "source": "ExampleInclude.sol",
+      "contract": "ExampleInclude",
+      "fragment": false,
+      "substitutions": {},
+      "upstream_sha256": "79557c481d30438315b277efabe57d5f25bb130d93672fcaf80508d19e658a67"
+    },
+    "example-main": {
+      "source": "ExampleMain.sol",
+      "contract": "ExampleMain",
+      "fragment": false,
+      "substitutions": {},
+      "upstream_sha256": "5001a139e0fa0edccdaa264e34db88e29bbe2aa03a00874818fa84ae68b66358"
+    },
+    "example-maps-pools": {
+      "source": "ExampleMapsPools.sol",
+      "contract": "ExampleMapsPools",
+      "fragment": false,
+      "substitutions": {
+        "0x0000000000000000000000000000000000deadbeef": "0x00000000000000000000000000000000deadbeef",
+        "0x0000000000000000000000000000000000feedface": "0x00000000000000000000000000000000feedface",
+        "0x0000000000000000000000000000000000cafebabe": "0x00000000000000000000000000000000cafebabe"
+      },
+      "upstream_sha256": "298d44a0a96afae9a99b3e8db3c2798904a54946c92cd12039babef159c15dc2"
+    },
+    "example-maps": {
+      "source": "ExampleMaps.sol",
+      "contract": "ExampleMaps",
+      "fragment": false,
+      "substitutions": {
+        "0x0000000000000000000000000000000000deadbeef": "0x00000000000000000000000000000000deadbeef",
+        "0x0000000000000000000000000000000000feedface": "0x00000000000000000000000000000000feedface",
+        "0x0000000000000000000000000000000000cafebabe": "0x00000000000000000000000000000000cafebabe"
+      },
+      "upstream_sha256": "84d7e1ea21d5e5042e707d4f2f91a8bdb00abaa8b8208d67097fb8e1880c0c00"
+    },
+    "example-userops-eip712": {
+      "source": "ExampleUseropsEip712.sol",
+      "contract": "ExampleUseropsEip712",
+      "fragment": false,
+      "substitutions": {
+        "0xYourImplementationAddress": "0x1111111111111111111111111111111111111111"
+      },
+      "upstream_sha256": "98a345e86d555b5f1bef6fe3706968eab111e1bc8431085e4f7aca251f5be013"
+    },
+    "example-visibility-rules": {
+      "source": "ExampleVisibilityRules.sol",
+      "contract": "ExampleVisibilityRules",
+      "fragment": false,
+      "substitutions": {},
+      "upstream_sha256": "3362813b8f13c65b8b5263a1f07d2e395f7dfa739e5bcf124a76c9b0ef2c5995"
+    }
+  }
+}

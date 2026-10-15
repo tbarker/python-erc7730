@@ -1,0 +1,20 @@
+{
+  "context": {
+    "eip712": {
+      "domain": {
+        "name": "Permit2"
+      },
+      "deployments": [
+        {
+          "chainId": 1,
+          "address": "0x00000000112233445566778899aabbccddeeff00"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "info": {
+      "url": "https://example.org/"
+    }
+  }
+}

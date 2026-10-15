@@ -1,0 +1,85 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "e57b5199c22fd12d949b085fbde102d3dcbb8f457ac2324b8d463e356245a655",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "initCode",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes",
+          "name": "callData",
+          "type": "bytes"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "accountGasLimits",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "preVerificationGas",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "gasFees",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "paymasterAndData",
+          "type": "bytes"
+        }
+      ],
+      "name": "PackedUserOperation",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Account Abstraction",
+    "kind": "dev",
+    "methods": {
+      "PackedUserOperation(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes)": {
+        "custom:clearsig-callee-path": "callData=\"#.sender\"",
+        "custom:clearsig-exclude": "nonce,accountGasLimits,preVerificationGas,gasFees",
+        "custom:clearsig-format": "sender=addressName nonce=raw initCode=raw callData=calldata accountGasLimits=raw preVerificationGas=raw gasFees=raw paymasterAndData=raw",
+        "custom:clearsig-if-not-in": "initCode=[0] paymasterAndData=[0]",
+        "custom:clearsig-intent": "Sign Packed User Operation",
+        "custom:clearsig-typed-data": "PackedUserOperation",
+        "custom:clearsig-types": "sender=[\"contract\"]",
+        "params": {
+          "callData": "Embedded Call Data",
+          "initCode": "Init Code",
+          "paymasterAndData": "Paymaster Data",
+          "sender": "Sender Account"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "PackedUserOperation(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes)": {
+        "notice": "Authorize user operation from `sender`"
+      }
+    },
+    "version": 1
+  }
+}

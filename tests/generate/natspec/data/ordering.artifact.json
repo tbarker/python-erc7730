@@ -1,0 +1,49 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "extra",
+          "type": "uint256"
+        }
+      ],
+      "name": "send",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "send(address,uint256,uint256)": {
+        "custom:clearsig-format": "amount=raw to=addressName",
+        "params": {
+          "amount": "Amount",
+          "to": "Recipient"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "send(address,uint256,uint256)": {
+        "notice": "Send tokens"
+      }
+    },
+    "version": 1
+  }
+}

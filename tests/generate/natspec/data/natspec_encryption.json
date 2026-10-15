@@ -1,0 +1,40 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "amount",
+          "type": "bytes32"
+        }
+      ],
+      "name": "transferEncrypted",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "transferEncrypted(bytes32)": {
+        "custom:clearsig-encryption-scheme": "amount=fhevm",
+        "custom:clearsig-example": "params=(0x1212121212121212121212121212121212121212121212121212121212121212) intent=\"Send encrypted tokens\" fields={\"Amount\":\"[Encrypted amount]\"}",
+        "custom:clearsig-fallback-label": "amount=[Encrypted amount]",
+        "custom:clearsig-format": "amount=tokenAmount",
+        "custom:clearsig-intent": "Send encrypted tokens",
+        "custom:clearsig-label": "amount=Amount",
+        "custom:clearsig-plaintext-type": "amount=uint64",
+        "custom:clearsig-token-path": "amount=@.to"
+      }
+    },
+    "title": "Encrypted Token Example",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang"
+}

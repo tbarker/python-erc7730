@@ -1,0 +1,49 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "0f633e908845d6334cd9318f4de3ee032e654d73c8796568d1b9e39e388f97ac",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Fixture",
+    "kind": "dev",
+    "methods": {
+      "approve(address,uint256)": {
+        "custom:clearsig-format": "spender=addressName value=tokenAmount",
+        "custom:clearsig-intent": "Approve",
+        "custom:clearsig-token-path": "value=@.to",
+        "params": {
+          "spender": "Spender",
+          "value": "Amount"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "approve(address,uint256)": {
+        "notice": "Approve `spender` to spend `value`"
+      }
+    },
+    "version": 1
+  }
+}

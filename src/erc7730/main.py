@@ -2,6 +2,7 @@ import builtins
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Annotated, assert_never
 
@@ -21,6 +22,8 @@ from erc7730.convert.ledger.eip712.convert_erc7730_to_eip712 import ERC7730toEIP
 from erc7730.convert.resolved.convert_erc7730_input_to_resolved import ERC7730InputToResolved
 from erc7730.format.format import format_all_and_print_errors
 from erc7730.generate.generate import generate_descriptor
+from erc7730.generate.natspec.config import load_project_defaults
+from erc7730.generate.natspec.generate import generate_natspec_descriptor
 from erc7730.lint.lint import lint_all_and_print_errors as lint_all_and_print_errors_v1
 from erc7730.lint.v2.lint import lint_all_and_print_errors as lint_all_and_print_errors_v2
 from erc7730.list.list import list_all
@@ -241,6 +244,72 @@ def command_generate(
         url=HttpUrl(url) if url is not None else None,
     )
     print(descriptor.to_json_string())
+
+
+@app.command(
+    name="natspec",
+    short_help="Create a V2 descriptor from ABI/schema and NatSpec.",
+    help="""
+    Generate a V2 descriptor as JSON on stdout from an ABI or EIP-712 schema.
+    For calldata, missing ABIs are fetched from Sourcify/Etherscan.
+
+    Annotation syntax and examples: docs/pages/natspec.md.
+    """,
+)
+def command_natspec(
+    chain_id: Annotated[int, Option(help="The EIP-155 chain id")],
+    address: Annotated[Address, Option(help="The contract address")],
+    abi: Annotated[Path | None, Option(help="Path to a JSON ABI file (to generate a calldata descriptor)")] = None,
+    schema: Annotated[Path | None, Option(help="Path to an EIP-712 schema (to generate an EIP-712 descriptor)")] = None,
+    config: Annotated[Path | None, Option(help="Project config (default: nearest erc7730.toml)")] = None,
+    natspec: Annotated[Path | None, Option(help="Compiler NatSpec JSON or artifact (also supplies ABI)")] = None,
+    userdoc: Annotated[Path | None, Option(help="Split compiler userdoc JSON")] = None,
+    devdoc: Annotated[Path | None, Option(help="Split compiler devdoc JSON")] = None,
+    owner: Annotated[str | None, Option(help="The display name of the owner or target of the contract")] = None,
+    url: Annotated[str | None, Option(help="URL with more info on the entity interacted with")] = None,
+    eip712_domain: Annotated[
+        Path | None, Option(help="EIP-712 domain JSON (requires --schema or clearsig-typed-data)")
+    ] = None,
+) -> None:
+    if schema is not None and abi is not None:
+        print("Cannot specify both ABI and schema.")
+        raise Exit(1)
+    schema_buffer = None
+    abi_buffer = None
+
+    if schema is not None:
+        with open(schema, "rb") as f:
+            schema_buffer = f.read()
+    elif abi is not None:
+        with open(abi, "rb") as f:
+            abi_buffer = f.read()
+
+    warnings: list[str] = []
+    try:
+        defaults = load_project_defaults(config)
+        natspec = natspec or (Path(defaults["natspec"]) if "natspec" in defaults else None)
+        userdoc = userdoc or (Path(defaults["userdoc"]) if "userdoc" in defaults else None)
+        devdoc = devdoc or (Path(defaults["devdoc"]) if "devdoc" in defaults else None)
+        descriptor = generate_natspec_descriptor(
+            chain_id=chain_id,
+            contract_address=address,
+            abi=abi_buffer,
+            eip712_schema=schema_buffer,
+            eip712_domain=eip712_domain.read_bytes() if eip712_domain is not None else None,
+            owner=owner,
+            url=HttpUrl(url) if url is not None else None,
+            natspec=natspec.read_bytes() if natspec is not None else None,
+            userdoc=userdoc.read_bytes() if userdoc is not None else None,
+            devdoc=devdoc.read_bytes() if devdoc is not None else None,
+            warnings=warnings,
+            project_defaults=defaults,
+        )
+    except (OSError, ValueError) as exc:
+        builtins.print(str(exc), file=sys.stderr)
+        raise Exit(1) from exc
+    for warning in warnings:
+        builtins.print(f"NatSpec warning: {warning}", file=sys.stderr)
+    builtins.print(descriptor.to_json_string())
 
 
 @app.command(

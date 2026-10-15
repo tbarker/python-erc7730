@@ -20,6 +20,7 @@ retained for backward compatibility but will be removed in a future release.
 :maxdepth: 2
 pages/usage_cli.md
 pages/usage_library.md
+pages/natspec.md
 pages/lint.md
 pages/developer.md
 ```

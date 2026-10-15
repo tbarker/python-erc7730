@@ -1,0 +1,50 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "271a4c99918c2aa2629e4d7b3ed556749be64b04af48f293d0e0dac8b42b5ee0",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "kind": "dev",
+    "methods": {
+      "transfer(address,uint256)": {
+        "custom:clearsig-format": "to=addressName value=tokenAmount",
+        "custom:clearsig-intent": "Send",
+        "custom:clearsig-token-path": "value=@.to",
+        "params": {
+          "to": "To",
+          "value": "Amount"
+        }
+      }
+    },
+    "title": "MyToken",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "transfer(address,uint256)": {
+        "notice": "Send `value` to `to`"
+      }
+    },
+    "version": 1
+  }
+}

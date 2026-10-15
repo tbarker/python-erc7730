@@ -1,0 +1,26 @@
+{
+  "context": {
+    "contract": {
+      "deployments": [
+        {
+          "chainId": 1,
+          "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+        },
+        {
+          "chainId": 137,
+          "address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F"
+        },
+        {
+          "chainId": 42161,
+          "address": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "info": {
+      "url": "https://example.io/",
+      "deploymentDate": "2017-11-28T12:41:21Z"
+    }
+  }
+}
