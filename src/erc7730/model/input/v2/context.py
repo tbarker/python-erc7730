@@ -5,7 +5,7 @@ Object model for ERC-7730 v2 descriptors `context` section.
 
 from typing import Any, Self
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 from pydantic_string_url import HttpUrl
 
 from erc7730.model.base import Model
@@ -20,6 +20,9 @@ class InputDomain(Model):
 
     Each value of the domain constraint MUST match the corresponding eip 712 message domain value.
     """
+
+    # The published schema permits additional domain binding constraints.
+    model_config = ConfigDict(extra="allow")
 
     name: str | None = Field(default=None, title="Name", description="The EIP-712 domain name.")
 
@@ -141,8 +144,15 @@ class InputEIP712(InputBindingContext):
     @model_validator(mode="after")
     def _validate_binding(self) -> Self:
         # an empty domainSeparator is no more a binding than a missing one
-        if not self.deployments and not self.domainSeparator:
-            raise ValueError("EIP-712 context must set at least one of deployments or domainSeparator.")
+        if (
+            not self.deployments
+            and not self.domainSeparator
+            and not (self.domain is not None and self.domain.model_dump(exclude_none=True))
+        ):
+            raise ValueError(
+                "EIP-712 context must set at least one of deployments or domainSeparator, "
+                "or nonempty domain constraints."
+            )
         return self
 
 
