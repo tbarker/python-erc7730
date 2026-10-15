@@ -10,7 +10,7 @@ from eip712.model.input.descriptor import InputEIP712DAppDescriptor
 from pydantic import RootModel
 from pydantic_string_url import HttpUrl
 from rich import print
-from typer import Argument, Exit, Option, Typer
+from typer import Argument, BadParameter, Exit, Option, Typer
 
 from erc7730.common.output import ConsoleOutputAdder
 from erc7730.convert.calldata.convert_erc7730_input_to_calldata import erc7730_descriptor_to_calldata_descriptors
@@ -124,11 +124,15 @@ def command_lint(
     v2: Annotated[
         bool, Option("--v2", help="Use v2 model for validation (auto-detected from $schema if not set)")
     ] = False,
+    *,
+    strict: Annotated[bool, Option(help="Check published V2 schema, declared types and intent templates")] = False,
 ) -> None:
     if v2 or _any_v2_descriptor(paths):
-        if not lint_all_and_print_errors_v2(paths, gha):
+        if not lint_all_and_print_errors_v2(paths, gha, strict=strict):
             raise Exit(1)
     else:
+        if strict:
+            raise BadParameter("Strict validation requires a v2 descriptor.")
         if not lint_all_and_print_errors_v1(paths, gha, skip_abi_validation=skip_abi_validation):
             raise Exit(1)
 

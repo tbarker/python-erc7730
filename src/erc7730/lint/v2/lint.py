@@ -4,6 +4,7 @@ from pathlib import Path
 
 from rich import print
 
+from erc7730.common.json import read_json_with_includes
 from erc7730.common.output import (
     AddFileOutputAdder,
     BufferAdder,
@@ -15,20 +16,23 @@ from erc7730.common.output import (
 )
 from erc7730.convert.resolved.v2.convert_erc7730_input_to_resolved import ERC7730InputToResolved
 from erc7730.lint.v2 import ERC7730Linter, MultiLinter
+from erc7730.lint.v2.json_schema import validate_json_schema
 from erc7730.lint.v2.lint_transaction_type_classifier import ClassifyTransactionTypeLinter
 from erc7730.lint.v2.lint_validate_display_fields import ValidateDisplayFieldsLinter
 from erc7730.lint.v2.lint_validate_eip712_keys import ValidateEIP712KeysLinter
+from erc7730.lint.v2.lint_validate_intent import ValidateIntentLinter
 from erc7730.lint.v2.lint_validate_map_keys import ValidateMapKeysLinter
 from erc7730.lint.v2.lint_validate_max_length import ValidateMaxLengthLinter
+from erc7730.lint.v2.lint_validate_schema import ValidateSchemaLinter
 from erc7730.list.list import get_erc7730_files
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 
 
-def lint_all_and_print_errors(paths: list[Path], gha: bool = False) -> bool:
+def lint_all_and_print_errors(paths: list[Path], gha: bool = False, *, strict: bool = False) -> bool:
     """Lint all ERC-7730 v2 descriptor files at given paths and print results."""
     out = GithubAnnotationsAdder() if gha else DropFileOutputAdder(delegate=ConsoleOutputAdder())
 
-    count = lint_all(paths, out)
+    count = lint_all(paths, out, strict=strict)
 
     if out.has_errors:
         print(f"[bold][red]checked {count} v2 descriptor files, some errors found ❌[/red][/bold]")
@@ -42,7 +46,7 @@ def lint_all_and_print_errors(paths: list[Path], gha: bool = False) -> bool:
     return True
 
 
-def lint_all(paths: list[Path], out: OutputAdder) -> int:
+def lint_all(paths: list[Path], out: OutputAdder, *, strict: bool = False) -> int:
     """
     Lint all ERC-7730 v2 descriptor files at given paths.
 
@@ -55,6 +59,7 @@ def lint_all(paths: list[Path], out: OutputAdder) -> int:
     linter = MultiLinter(
         [
             ValidateDisplayFieldsLinter(),
+            *([ValidateSchemaLinter(), ValidateIntentLinter()] if strict else []),
             ValidateEIP712KeysLinter(),
             ValidateMapKeysLinter(),
             ClassifyTransactionTypeLinter(),
@@ -74,13 +79,15 @@ def lint_all(paths: list[Path], out: OutputAdder) -> int:
         print(f"🔍 checking {len(files)} v2 descriptor files…\n")
 
     with ThreadPoolExecutor() as executor:
-        for future in (executor.submit(lint_file, file, linter, out, label(file)) for file in files):
+        for future in (executor.submit(lint_file, file, linter, out, label(file), strict=strict) for file in files):
             future.result()
 
     return len(files)
 
 
-def lint_file(path: Path, linter: ERC7730Linter, out: OutputAdder, show_as: Path | None = None) -> None:
+def lint_file(
+    path: Path, linter: ERC7730Linter, out: OutputAdder, show_as: Path | None = None, *, strict: bool = False
+) -> None:
     """
     Lint a single ERC-7730 v2 descriptor file.
 
@@ -94,7 +101,10 @@ def lint_file(path: Path, linter: ERC7730Linter, out: OutputAdder, show_as: Path
     file_out = AddFileOutputAdder(delegate=out, file=path)
 
     with BufferAdder(file_out, prolog=f"➡️ checking [bold]{label}[/bold]…", epilog="") as out, ExceptionsToOutput(out):
-        input_descriptor = InputERC7730Descriptor.load(path)
+        value = read_json_with_includes(path, merge_display_fields=True)
+        if strict and not validate_json_schema(value, out):
+            return
+        input_descriptor = InputERC7730Descriptor.model_validate(value, strict=False)
         resolved_descriptor = ERC7730InputToResolved().convert(input_descriptor, out)
         if resolved_descriptor is not None:
             linter.lint(input_descriptor, resolved_descriptor, out)

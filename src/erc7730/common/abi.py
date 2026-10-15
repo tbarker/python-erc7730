@@ -26,7 +26,8 @@ _SIGNATURE_PARSER = parser = Lark(
             identifier: /[a-zA-Z$_][a-zA-Z0-9$_]*/
             type: identifier array*
 
-            %ignore " "
+            %import common.WS
+            %ignore WS
             """,
     start="function",
 )
