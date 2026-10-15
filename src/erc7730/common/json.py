@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, override
 
 
-def read_jsons_with_includes(paths: list[Path]) -> Any:
+def read_jsons_with_includes(paths: list[Path], *, merge_display_fields: bool = False) -> Any:
     """
     Read a list JSON files, recursively inlining any included files.
 
@@ -14,57 +14,93 @@ def read_jsons_with_includes(paths: list[Path]) -> Any:
     Keys from the later files in the list override those of the first files.
 
     Note:
-      - circular includes are not detected and will result in a stack overflow.
+      - circular includes are rejected.
       - "includes" key can only be used at root level of an object.
     """
     result: dict[str, Any] = {}
     for path in paths:
         # noinspection PyTypeChecker
-        result = _merge_dicts(result, read_json_with_includes(path))
+        result = _merge_dicts(
+            result,
+            read_json_with_includes(path, merge_display_fields=merge_display_fields),
+            merge_display_fields=merge_display_fields,
+        )
     return result
 
 
-def read_json_with_includes(path: Path) -> Any:
+def read_json_with_includes(path: Path, *, merge_display_fields: bool = False) -> Any:
+    """Read local includes, rejecting cycles.
+
+    V2 callers opt into merging display field arrays by path. Other arrays retain
+    ordinary override semantics, including arbitrary metadata named ``fields``.
     """
-    Read a JSON file, recursively inlining any included files.
 
-    Keys from the calling file override those of the included file (the included file defines defaults).
+    def read(location: Path, active: frozenset[Path]) -> dict[str, Any]:
+        identity = location.resolve()
+        if identity in active:
+            raise ValueError(f"Circular ERC-7730 include: {identity}")
+        document = dict_from_json_file(location)
+        if not isinstance(document, dict):
+            raise ValueError(f"ERC-7730 include must be an object: {identity}")
+        includes = document.pop("includes", None)
+        parent: dict[str, Any] = {}
+        for include in includes if isinstance(includes, list) else ([] if includes is None else [includes]):
+            if not isinstance(include, str):
+                raise ValueError("ERC-7730 includes must contain paths")
+            target = identity.parent / include
+            parent = _merge_dicts(parent, read(target, active | {identity}), merge_display_fields=merge_display_fields)
+        return _merge_dicts(parent, document, merge_display_fields=merge_display_fields)
 
-    If include is a list, files are included in other they are defined, with later files overriding previous files.
+    return read(path, frozenset())
 
-    Note:
-      - circular includes are not detected and will result in a stack overflow.
-      - "includes" key can only be used at root level of an object.
-    """
-    result: dict[str, Any] = dict_from_json_file(path)
-    if isinstance(result, dict) and (includes := result.pop("includes", None)) is not None:
-        if isinstance(includes, list):
-            parent = read_jsons_with_includes(paths=[path.parent / p for p in includes])
+
+def _merge_dicts(
+    d1: dict[str, Any],
+    d2: dict[str, Any],
+    *,
+    merge_display_fields: bool = False,
+    location: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Merge defaults with overrides; V2 display fields optionally merge by path."""
+    result = dict(d1)
+    for key, value in d2.items():
+        previous = result.get(key)
+        if value is None and key in d1 and not merge_display_fields:
+            continue
+        if isinstance(previous, dict) and isinstance(value, dict):
+            result[key] = _merge_dicts(
+                previous, value, merge_display_fields=merge_display_fields, location=(*location, key)
+            )
+        elif (
+            merge_display_fields
+            and key == "fields"
+            and isinstance(previous, list)
+            and isinstance(value, list)
+            and len(location) >= 3
+            and location[:2] == ("display", "formats")
+            and all(part == "fields" for part in location[3:])
+        ):
+            fields = list(previous)
+            for field in value:
+                path = field.get("path") if isinstance(field, dict) else None
+                index = next(
+                    (
+                        i
+                        for i, old in enumerate(fields)
+                        if path is not None and isinstance(old, dict) and old.get("path") == path
+                    ),
+                    None,
+                )
+                if index is None:
+                    fields.append(field)
+                else:
+                    fields[index] = _merge_dicts(
+                        fields[index], field, merge_display_fields=True, location=(*location, "fields")
+                    )
+            result[key] = fields
         else:
-            # noinspection PyTypeChecker
-            parent = read_json_with_includes(path.parent / includes)
-        result = _merge_dicts(parent, result)
+            result[key] = value
     return result
-
-
-def _merge_dicts(d1: dict[str, Any], d2: dict[str, Any]) -> dict[str, Any]:
-    """
-    Merge d1 and d2, with priority to d2.
-
-    Recursively called when dicts are encountered.
-
-    This function assumes that if the same field is in both dicts, then the types must be the same.
-    """
-    merged = {}
-    for key, val1 in d1.items():
-        if (val2 := d2.get(key)) is not None:
-            if isinstance(val1, dict):
-                merged[key] = _merge_dicts(d1=val1, d2=val2)
-            else:
-                merged[key] = val2
-        else:
-            merged[key] = val1
-    return {**d2, **merged}
 
 
 def dict_from_json_str(value: str) -> dict[str, Any]:

@@ -11,8 +11,12 @@ This model represents descriptors before resolution phase:
     - Selectors have been converted to 4 bytes form
 """
 
+from pathlib import Path
+from typing import Self
+
 from pydantic import Field
 
+from erc7730.common.json import read_json_with_includes
 from erc7730.model.base import Model
 from erc7730.model.input.v2.context import InputContractContext, InputEIP712Context
 from erc7730.model.input.v2.display import InputDisplay
@@ -29,6 +33,16 @@ class InputERC7730Descriptor(Model):
 
     JSON schema: https://github.com/LedgerHQ/clear-signing-erc7730-registry/blob/master/specs/erc7730-v2.schema.json
     """
+
+    @classmethod
+    def load(cls, path: Path) -> Self:
+        """Load a V2 descriptor with display-field include merging."""
+        return cls.model_validate(read_json_with_includes(path, merge_display_fields=True), strict=False)
+
+    @classmethod
+    def load_or_none(cls, path: Path) -> Self | None:
+        """Load a V2 descriptor if the file exists."""
+        return cls.load(path) if path.is_file() else None
 
     schema_: str | None = Field(
         None,
