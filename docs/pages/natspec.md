@@ -65,6 +65,7 @@ Names use kebab-case; values retain schema spelling (`tokenAmount`, `@.chainId`)
 
 | Tag | Value | Effect |
 | --- | --- | --- |
+| `@custom:clearsig-example` | `params=(...) intent="..." [fields={...}]` | Authored display test example |
 | `@custom:clearsig-owner` | `Protocol DAO` | Contract-level `metadata.owner` |
 | `@custom:clearsig-url` | `https://example.org/` | Contract-level `metadata.info.url` |
 | `@custom:clearsig-constant` | `feeDecimals=2, feeBase="%"` | Contract-level scalar constants in `metadata.constants` |
@@ -138,6 +139,128 @@ References do not create fields. Explicit templates preserve backticks; doubled 
 escape literal braces. A templated `@param` requires a static `clearsig-label` override.
 Descriptor lint requires a static intent for every format, even undocumented drafts.
 
+## Complex example
+
+```solidity
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.30;
+
+/// @title Example Token
+/// @author Example
+/// @custom:clearsig-format amount=tokenAmount
+/// @custom:clearsig-token-path amount=@.to
+/// @custom:clearsig-exclude nonce
+interface Token {
+    struct Order { address maker; uint256 amount; uint256 deadline; }
+
+    /// @notice Send `amount` to `to`
+    /// @param to Recipient
+    /// @param amount Amount
+    /// @custom:clearsig-intent Send tokens
+    /// @custom:clearsig-example params=(Alice,1500000) intent="Send 1.5 USDC to Alice"
+    function transfer(address to, uint256 amount) external;
+
+    /// @notice Settle an order
+    /// @param order Order to settle
+    /// @param fee Processing fee
+    /// @param nonce Replay protection
+    /// @custom:clearsig-format order.amount=tokenAmount order.maker=addressName order.deadline=date fee=unit
+    /// @custom:clearsig-token-path order.amount=@.to
+    /// @custom:clearsig-date-encoding order.deadline=timestamp
+    /// @custom:clearsig-label order.amount=Amount order.maker=Maker order.deadline=Deadline fee=Fee
+    /// @custom:clearsig-base fee="%"
+    /// @custom:clearsig-decimals fee=2
+    /// @custom:clearsig-if-not-in fee=[0]
+    /// @custom:clearsig-group settlement="Settlement" fields=(order.amount,order.maker)
+    /// @custom:clearsig-example params=((Alice,1500000,1700000000),0,42) intent="Settle an order" fields={"Amount":"1.5 USDC","Maker":"Alice"}
+    function settle(Order calldata order, uint256 fee, uint256 nonce) external;
+
+    /// @notice Distribute fees
+    /// @param recipients Recipient ID
+    /// @param percentages Fee
+    /// @custom:clearsig-format recipients=raw percentages=raw
+    /// @custom:clearsig-group fees="Recipients and Fees" fields=(recipients,percentages) iteration=bundled
+    /// @custom:clearsig-example params=([1,2],[25,75]) intent="Distribute fees"
+    function distribute(uint256[] calldata recipients, uint256[] calldata percentages) external;
+}
+```
+
+Save as `Token.sol`, compile as above, and configure test data in `erc7730.toml`:
+
+```toml
+[generate]
+natspec = "out/Token.sol/Token.json"
+
+[generate.examples]
+maxSanityCases = 32
+
+[generate.examples.aliases]
+Alice = "0x1111111111111111111111111111111111111111"
+
+[generate.examples.dataProvider.addressNames]
+"0x1111111111111111111111111111111111111111" = "Alice"
+
+[generate.examples.dataProvider.tokens."0x2222222222222222222222222222222222222222"]
+symbol = "USDC"
+decimals = 6
+name = "USD Coin"
+```
+
+Aliases resolve input arguments; `addressNames` controls displayed names.
+
+(natspec-examples)=
+## Running examples: CLI and library
+
+Examples compare the rendered intent exactly. Optional `fields={"Label":"Expected text"}`
+checks field values; each asserted label must appear exactly once.
+Arguments may be positional or fully named: `params=(amount=1500000,to=Alice)`.
+Supply hidden inputs too. Values support raw-unit integers, booleans, quoted strings,
+hex addresses/bytes, aliases, arrays and positional tuples. Repeat tags for multiple cases.
+
+Example execution requires a compatible renderer supplied by the user. The default
+command is `clear-signing-test-runner`; override it with `--example-runner`:
+
+```shell
+erc7730 natspec --chain-id 1 --address 0x2222222222222222222222222222222222222222 \
+ --owner "Example" --example-runner 'node /path/to/dist/cli.js' > calldata-token.json
+erc7730 lint --v2 --strict calldata-token.json --example-runner 'node /path/to/dist/cli.js' \
+ --junit-xml reports/lint.xml
+```
+
+Both commands discover the config above; compiler paths are relative to that file.
+CLI inputs override config. Inline examples activate testing; supplying a renderer
+also enables automatic cases. Lint needs compiler inputs to rerun authored examples.
+
+```python
+import tomllib
+from pathlib import Path
+from erc7730.generate.natspec.generate import generate_natspec_descriptor
+from erc7730.generate.natspec.examples import CommandExampleRunner, NatSpecExamples
+
+compiler_json = Path("out/Token.sol/Token.json").read_bytes()
+defaults = tomllib.loads(Path("erc7730.toml").read_text())["generate"]
+renderer = CommandExampleRunner(["node", "/path/to/dist/cli.js"])
+descriptor = generate_natspec_descriptor(
+    1, "0x2222222222222222222222222222222222222222",
+    natspec=compiler_json, project_defaults=defaults, example_renderer=renderer,
+)
+examples = NatSpecExamples(natspec=compiler_json, config=defaults["examples"], renderer=renderer)
+report = examples.run(descriptor)  # Explicit rerun after editing, if needed.
+```
+
+Pass `examples` to `lint_all(..., examples=examples)` to run them during lint.
+An `ExampleRenderer` callable can replace the subprocess adapter. See
+[example failures](natspec-example-failures) and [JUnit reports](junit-lint-reports).
+
+(automatic-sanity-examples)=
+## Automatic sanity checks
+
+Automatic cases exercise numeric/time boundaries, arrays, nested fields, address
+fallbacks, visibility and interpolation. `[generate.examples]` accepts
+`automatic=true` and `maxSanityCases=32` (1–128 per function).
+With `automatic=false`, example-enabled lint requires an authored example per function.
+`sanity_unavailable` and CLI warnings identify unsupported checks and budget limits.
+
 (encrypted-fields-and-examples)=
 ## Encryption
 
@@ -145,6 +268,11 @@ For encrypted `bytes32 amount`, use `clearsig-encryption-scheme amount=fhevm`,
 `clearsig-plaintext-type amount=uint64`, and
 `clearsig-fallback-label amount=[Encrypted amount]`. A scheme is required; plaintext
 Solidity types must be canonical and determine formatter compatibility.
+
+`fields={"Amount":"[Encrypted amount]"}` checks fallback rendering, the default
+`encryptionMode="fallback"`. For a decrypting renderer, set
+`generate.examples.encryptionMode="external"` and assert decrypted text instead.
+Automatic plaintext checks then report an unavailable oracle.
 
 (metadata-annotations)=
 ## Contract metadata
@@ -236,7 +364,7 @@ project entries by key. Map values must be scalars.
 Keys select one scalar: integers use decimal strings, booleans `true`/`false`, bytes
 `0x` hex. Missing keys invalidate the transaction; there is no default.
 Ledger calldata export supports maps; deployment keys resolve to constants.
-Legacy EIP-712 export and the pinned renderer do not support runtime maps.
+Legacy EIP-712 export does not support runtime maps.
 
 (named-display-groups)=
 ## Groups and array headings
@@ -294,15 +422,24 @@ ones; conflicts within one scope fail. Exclusions win. Conditional/hidden fields
 supply interpolated-intent formatters.
 
 (eip-712-schema-bridge)=
-## EIP-712 bridge
+## EIP-712 bridge and examples
 
 Method-level `@custom:clearsig-typed-data Permit` selects typed-message generation from
 compiler ABI. Parameters become primary-type fields in ABI order; structs keep their
 compiler `internalType` names and nesting, including a sole struct parameter. Only
-annotated methods become messages. Notices, labels, display tags follow
+annotated methods become messages. Notices, labels, display tags and examples follow
 the method. Output uses full `encodeType` declarations with sorted dependent types.
 
 The bridge cannot combine with an explicit schema. Duplicate primary types, conflicting
 definitions, unnamed members, unsupported types and recursive expansion fail generation.
 For an explicit EIP-712 schema, docs can instead join by primary type.
 
+Typed examples use the same argument syntax; tuples become named objects and integers
+become decimal strings. Set `generate.examples.sender` for `@.from`. One deployment
+plus domain constraints can infer the domain; multiple deployments or domain-separator
+bindings require a complete `generate.examples.domain`. `@.to`/`@.chainId` need the
+corresponding domain values.
+
+Custom primitive domain fields require an ordered `domainTypes` list; domain structs
+and arrays are unsupported. Domain integers must fit the runner's JSON safe-integer
+range; message integers retain full precision.

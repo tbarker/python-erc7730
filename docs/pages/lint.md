@@ -90,3 +90,20 @@ with `ValueError` (CLI exit 1); warnings identify skipped overrides or wording t
 | Malformed field assignments | Correct the syntax; the entire affected tag value is skipped. |
 | Invalid formatter or parameter override | Correct the value; invalid overrides warn and are skipped. |
 
+(natspec-example-failures)=
+## Example failures
+
+Supply compiler docs or example configuration to lint to run [examples](natspec-examples).
+Failed examples stop generation. Unavailable automatic checks are reported as skipped.
+
+(junit-lint-reports)=
+## JUnit XML reports
+
+```sh
+erc7730 lint --v2 calldata-token.json --junit-xml reports/lint.xml
+```
+
+Reports include validation stages and executed examples, and are written even on failure.
+Errors become failures, warnings appear in `system-out`, and blocked or unavailable checks
+are skipped. Example execution is skipped when no example inputs/configuration are supplied.
+See the [library guide](usage_library.md) for Python usage.

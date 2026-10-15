@@ -63,6 +63,7 @@ Path("calldata-token.json").write_text(descriptor.to_json_string())
 | `natspec` | JSON string, bytes, or dictionary: raw docs, paired docs, or an artifact |
 | `userdoc`, `devdoc` | Optional split JSON strings, bytes, or dictionaries; conflict with `natspec` containing both docs |
 | `project_defaults` | A mapping of custom tag keys, or its JSON string/bytes representation |
+| `example_renderer` | `ExampleRenderer` callable or `CommandExampleRunner`; see [example setup](natspec-examples) |
 | `eip712_domain` | Domain constraints as a dictionary, JSON string or bytes; requires message generation |
 | `warnings` | Optional `list[str]` populated with diagnostics; omitted collectors use Python logging |
 | `owner`, `url` | Override supplied metadata and NatSpec fallbacks |
@@ -80,6 +81,7 @@ project_defaults = tomllib.loads(Path("erc7730.toml").read_text())["generate"]
 ```
 
 Generation errors raise `ValueError`; see [lint diagnostics](natspec-and-intent-checks).
+For example execution, pass `example_renderer` and `project_defaults["examples"]`.
 Use `NatSpecExamples(...).run(descriptor)` or `run_natspec_examples(...)` to rerun checks;
 the [example guide](natspec-examples) includes a complete library example.
 
@@ -194,6 +196,26 @@ The package contains several linter implementations:
  erc7730.lint.lint_validate_display_fields.ValidateDisplayFieldsLinter
  erc7730.lint.lint_transaction_type_classifier.ClassifyTransactionTypeLinter
 ```
+
+#### V2 lint and JUnit reports
+
+Pass a `NatSpecExamples` instance as `examples` to `lint_all` or `lint_file` to run
+source examples during lint. Pass a `JUnitReport` as `report` to collect results:
+
+```python
+from pathlib import Path
+from erc7730.common.output import ListOutputAdder
+from erc7730.lint.v2.lint import lint_all
+from erc7730.lint.v2.report import JUnitReport
+
+out = ListOutputAdder()
+report = JUnitReport()
+lint_all([Path("calldata-token.json")], out, report=report, strict=True)
+report.write(Path("reports/lint.xml"))
+```
+
+`out.has_errors` and `out.has_warnings` expose the outcome. See
+[JUnit reports](junit-lint-reports) for result semantics.
 
 ### `erc7730.convert`
 

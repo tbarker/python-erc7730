@@ -15,6 +15,7 @@ from erc7730.common.schema_types import validate_function_declaration
 from erc7730.generate.natspec import JSONInput, parse_natspec
 from erc7730.generate.natspec.display import apply_natspec
 from erc7730.generate.natspec.eip712_bridge import bridge_methods, infer_schemas, message_docs
+from erc7730.generate.natspec.examples import ExampleRenderer, has_examples, run_natspec_examples
 from erc7730.generate.natspec.metadata import apply_metadata_annotations
 from erc7730.generate.schema_tree import (
     SchemaArray,
@@ -67,6 +68,7 @@ def generate_natspec_descriptor(
     devdoc: JSONInput = None,
     warnings: list[str] | None = None,
     project_defaults: JSONInput = None,
+    example_renderer: ExampleRenderer | None = None,
     eip712_domain: JSONInput = None,
     deployments: list[InputDeployment] | None = None,
     metadata: InputMetadata | None = None,
@@ -92,6 +94,7 @@ def generate_natspec_descriptor(
     :param devdoc: optional split compiler developer documentation JSON
     :param warnings: optional diagnostic collector; otherwise diagnostics are logged
     :param project_defaults: project-level custom formatter tags, using the same keys as compiler NatSpec
+    :param example_renderer: registry-compatible renderer; required examples run before returning
     :raises ValueError: NatSpec lint errors, invalid method exclusions, or conflicting inputs
     :return: a generated v2 ERC-7730 descriptor
     """
@@ -181,6 +184,25 @@ def generate_natspec_descriptor(
         }
     )
 
+    if (
+        has_examples(natspec, userdoc, devdoc)
+        or example_renderer is not None
+        or docs.project_defaults.get("examples") is not None
+    ):
+        report = run_natspec_examples(
+            descriptor,
+            natspec=natspec,
+            userdoc=userdoc,
+            devdoc=devdoc,
+            config=docs.project_defaults.get("examples"),
+            renderer=example_renderer,
+            require_all=False,
+        )
+        for message in report.sanity_unavailable:
+            if warnings is not None:
+                warnings.append(message)
+            else:
+                logging.getLogger(__name__).warning(message)
     return descriptor
 
 
