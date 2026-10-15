@@ -1,0 +1,131 @@
+{
+  "abi": [
+    {
+      "type": "function",
+      "name": "settle",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "order",
+          "type": "tuple",
+          "components": [
+            {
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "transfer",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "approve",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "notice": "Simple ERC-20",
+    "methods": {
+      "transfer(address,uint256)": {
+        "notice": "Send `amount` to `to`"
+      },
+      "approve(address,uint256)": {
+        "notice": "Approve a spender"
+      },
+      "settle((address,uint256,uint256),uint256)": {
+        "notice": "Settle an order"
+      }
+    }
+  },
+  "devdoc": {
+    "version": 1,
+    "kind": "dev",
+    "title": "Test Token",
+    "methods": {
+      "transfer(address,uint256)": {
+        "params": {
+          "to": "Recipient",
+          "amount": "Amount to send"
+        },
+        "custom:clearsig-intent": "Send",
+        "custom:clearsig-format": "amount=tokenAmount",
+        "custom:clearsig-token-path": "amount=@.to",
+        "custom:clearsig-example": "params=(Alice,1500000) intent=\"Send 1.5 USDC to Alice\""
+      },
+      "approve(address,uint256)": {
+        "params": {
+          "spender": "Spender",
+          "amount": "Allowance"
+        },
+        "custom:clearsig-intent": "Approve",
+        "custom:clearsig-exclude": "amount",
+        "custom:clearsig-example": "params=(amount=1500000,spender=Alice) intent=\"Approve\""
+      },
+      "settle((address,uint256,uint256),uint256)": {
+        "params": {
+          "order": "Order to settle",
+          "nonce": "Replay protection"
+        },
+        "custom:clearsig-intent": "Settle order",
+        "custom:clearsig-format": "order.amount=tokenAmount",
+        "custom:clearsig-token-path": "order.amount=@.to",
+        "custom:clearsig-date-encoding": "order.deadline=timestamp",
+        "custom:clearsig-label": "order.maker=Maker order.amount=Amount order.deadline=Deadline",
+        "custom:clearsig-exclude": "nonce",
+        "custom:clearsig-example": "params=((Alice,1500000,1700000000),42) intent=\"Settle order\""
+      }
+    }
+  }
+}

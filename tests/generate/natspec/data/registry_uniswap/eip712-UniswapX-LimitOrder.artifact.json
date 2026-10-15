@@ -1,0 +1,150 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "84438b20598495fd6070a6880b086e1bc85ab18aae25f15cade247bb40d038e9",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapxLimitorder.TokenPermissions",
+          "name": "permitted",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "reactor",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "deadline",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "additionalValidationContract",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "additionalValidationData",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct UniswapEip712UniswapxLimitorder.OrderInfo",
+              "name": "info",
+              "type": "tuple"
+            },
+            {
+              "internalType": "address",
+              "name": "inputToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "inputAmount",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "token",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "amount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "recipient",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct UniswapEip712UniswapxLimitorder.OutputToken[]",
+              "name": "outputs",
+              "type": "tuple[]"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapxLimitorder.LimitOrder",
+          "name": "witness",
+          "type": "tuple"
+        }
+      ],
+      "name": "sign0",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "custom:clearsig-owner": "Uniswap Labs",
+    "kind": "dev",
+    "methods": {
+      "sign0((address,uint256),address,uint256,uint256,((address,address,uint256,uint256,address,bytes),address,uint256,(address,uint256,address)[]))": {
+        "custom:clearsig-date-encoding": "deadline=timestamp",
+        "custom:clearsig-exclude": "nonce,witness.info,permitted.token,witness.inputToken,witness.outputs.token",
+        "custom:clearsig-format": "spender=raw permitted.amount=tokenAmount witness.inputAmount=tokenAmount witness.outputs.amount=tokenAmount witness.outputs.recipient=raw deadline=date",
+        "custom:clearsig-label": "permitted.amount=Amount allowance witness.inputAmount=Send witness.outputs.amount=Min amount to receive witness.outputs.recipient=On Address",
+        "custom:clearsig-token-path": "permitted.amount=#.permitted.token witness.inputAmount=#.witness.inputToken witness.outputs.amount=token",
+        "custom:clearsig-typed-data": "PermitWitnessTransferFrom",
+        "params": {
+          "deadline": "Approval expire",
+          "spender": "Approve to spender"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "sign0((address,uint256),address,uint256,uint256,((address,address,uint256,uint256,address,bytes),address,uint256,(address,uint256,address)[]))": {
+        "notice": "UniswapX Limit Order"
+      }
+    },
+    "version": 1
+  }
+}

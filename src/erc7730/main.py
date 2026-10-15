@@ -2,6 +2,7 @@ import builtins
 import json
 import logging
 import os
+import shlex
 import sys
 from pathlib import Path
 from typing import Annotated, assert_never
@@ -11,7 +12,7 @@ from eip712.model.input.descriptor import InputEIP712DAppDescriptor
 from pydantic import RootModel
 from pydantic_string_url import HttpUrl
 from rich import print
-from typer import Argument, BadParameter, Exit, Option, Typer
+from typer import Argument, Exit, Option, Typer
 
 from erc7730.common.output import ConsoleOutputAdder
 from erc7730.convert.calldata.convert_erc7730_input_to_calldata import erc7730_descriptor_to_calldata_descriptors
@@ -23,6 +24,7 @@ from erc7730.convert.resolved.convert_erc7730_input_to_resolved import ERC7730In
 from erc7730.format.format import format_all_and_print_errors
 from erc7730.generate.generate import generate_descriptor
 from erc7730.generate.natspec.config import load_project_defaults
+from erc7730.generate.natspec.examples import CommandExampleRunner, NatSpecExamples
 from erc7730.generate.natspec.generate import generate_natspec_descriptor
 from erc7730.lint.lint import lint_all_and_print_errors as lint_all_and_print_errors_v1
 from erc7730.lint.v2.lint import lint_all_and_print_errors as lint_all_and_print_errors_v2
@@ -115,7 +117,8 @@ def command_schema(
     name="lint",
     short_help="Validate descriptor files.",
     help="""
-    Validate descriptor files.
+    Validate descriptor files. Supply compiler inputs directly or through project
+    config to run NatSpec examples. Example setup: docs/pages/natspec.md.
     """,
 )
 def command_lint(
@@ -128,14 +131,65 @@ def command_lint(
         bool, Option("--v2", help="Use v2 model for validation (auto-detected from $schema if not set)")
     ] = False,
     *,
+    junit_xml: Annotated[Path | None, Option(help="Write V2 lint and executed example results as JUnit XML")] = None,
     strict: Annotated[bool, Option(help="Check published V2 schema, declared types and intent templates")] = False,
+    natspec: Annotated[Path | None, Option(help="Compiler JSON with function examples to run during lint")] = None,
+    userdoc: Annotated[Path | None, Option(help="Split compiler userdoc for example tests")] = None,
+    devdoc: Annotated[Path | None, Option(help="Split compiler devdoc for example tests")] = None,
+    config: Annotated[Path | None, Option(help="Project config (default: nearest erc7730.toml)")] = None,
+    example_runner: Annotated[
+        str | None, Option(help="Example renderer command (default: clear-signing-test-runner)")
+    ] = None,
 ) -> None:
+    try:
+        defaults = (
+            load_project_defaults(config)
+            if any(value is not None for value in (config, natspec, userdoc, devdoc, example_runner))
+            else {}
+        )
+        natspec = natspec or (Path(defaults["natspec"]) if "natspec" in defaults else None)
+        userdoc = userdoc or (Path(defaults["userdoc"]) if "userdoc" in defaults else None)
+        devdoc = devdoc or (Path(defaults["devdoc"]) if "devdoc" in defaults else None)
+    except ValueError as exc:
+        builtins.print(str(exc), file=sys.stderr)
+        raise Exit(1) from exc
+    examples = None
+    if (
+        any(path is not None for path in (natspec, userdoc, devdoc))
+        or example_runner is not None
+        or defaults.get("examples") is not None
+    ):
+        try:
+            examples = NatSpecExamples(
+                natspec=natspec.read_bytes() if natspec else None,
+                userdoc=userdoc.read_bytes() if userdoc else None,
+                devdoc=devdoc.read_bytes() if devdoc else None,
+                config=defaults.get("examples"),
+                renderer=CommandExampleRunner(shlex.split(example_runner)) if example_runner is not None else None,
+            )
+        except (OSError, ValueError) as exc:
+            builtins.print(str(exc), file=sys.stderr)
+            raise Exit(1) from exc
     if v2 or _any_v2_descriptor(paths):
-        if not lint_all_and_print_errors_v2(paths, gha, strict=strict):
-            raise Exit(1)
+        from erc7730.lint.v2.report import JUnitReport
+
+        report = JUnitReport() if junit_xml is not None else None
+        try:
+            if not lint_all_and_print_errors_v2(paths, gha, examples=examples, report=report, strict=strict):
+                raise Exit(1)
+        finally:
+            if report is not None and junit_xml is not None:
+                try:
+                    report.write(junit_xml)
+                except OSError as exc:
+                    builtins.print(f"Cannot write JUnit report: {exc}", file=sys.stderr)
+                    raise Exit(1) from exc
     else:
-        if strict:
-            raise BadParameter("Strict validation requires a v2 descriptor.")
+        if examples is not None or junit_xml is not None or strict:
+            builtins.print(
+                "Strict validation, NatSpec examples and JUnit reports require a v2 descriptor.", file=sys.stderr
+            )
+            raise Exit(1)
         if not lint_all_and_print_errors_v1(paths, gha, skip_abi_validation=skip_abi_validation):
             raise Exit(1)
 
@@ -270,6 +324,9 @@ def command_natspec(
     eip712_domain: Annotated[
         Path | None, Option(help="EIP-712 domain JSON (requires --schema or clearsig-typed-data)")
     ] = None,
+    example_runner: Annotated[
+        str | None, Option(help="Example renderer command (default: clear-signing-test-runner)")
+    ] = None,
 ) -> None:
     if schema is not None and abi is not None:
         print("Cannot specify both ABI and schema.")
@@ -303,6 +360,7 @@ def command_natspec(
             devdoc=devdoc.read_bytes() if devdoc is not None else None,
             warnings=warnings,
             project_defaults=defaults,
+            example_renderer=CommandExampleRunner(shlex.split(example_runner)) if example_runner is not None else None,
         )
     except (OSError, ValueError) as exc:
         builtins.print(str(exc), file=sys.stderr)

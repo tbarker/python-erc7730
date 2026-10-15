@@ -1,0 +1,103 @@
+{
+  "repository": "https://github.com/ethereum/clear-signing-erc7730-registry",
+  "commit": "000841a1d7e96a4fc592c930ccc58cb6b3ad549e",
+  "examples": {
+    "eip712-uniswap-permit2": {
+      "source": "UniswapEip712UniswapPermit2.sol",
+      "contract": "UniswapEip712UniswapPermit2",
+      "upstream_sha256": "9a31a5381f88d6478f06208126df82bafead52f27e40a156c4c71f5f8099a05e",
+      "generation_exclusions": {
+        "PermitSingle(PermitDetails details,address spender,uint256 sigDeadline)PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)": [
+          "details.token",
+          "details.nonce"
+        ],
+        "PermitBatch(PermitDetails[] details,address spender,uint256 sigDeadline)PermitDetails(address token,uint160 amount,uint48 expiration,uint48 nonce)": [
+          "details.[].token",
+          "details.[].nonce"
+        ],
+        "PermitTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)": [
+          "permitted.token",
+          "nonce"
+        ]
+      }
+    },
+    "eip712-UniswapX-DutchOrder": {
+      "source": "UniswapEip712UniswapxDutchorder.sol",
+      "contract": "UniswapEip712UniswapxDutchorder",
+      "upstream_sha256": "15724ca46d12238517e4b23ab520e056eeb9102da1b109a118156874838dd150",
+      "generation_exclusions": {
+        "PermitWitnessTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline,DutchOrder witness)DutchOrder(OrderInfo info,uint256 decayStartTime,uint256 decayEndTime,address inputToken,uint256 inputStartAmount,uint256 inputEndAmount,DutchOutput[] outputs)DutchOutput(address token,uint256 startAmount,uint256 endAmount,address recipient)OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData)TokenPermissions(address token,uint256 amount)": [
+          "permitted.token",
+          "witness.inputToken",
+          "witness.outputs.[].token"
+        ]
+      }
+    },
+    "eip712-UniswapX-ExclusiveDutchOrder": {
+      "source": "UniswapEip712UniswapxExclusivedutchorder.sol",
+      "contract": "UniswapEip712UniswapxExclusivedutchorder",
+      "upstream_sha256": "a4f66cb37e2a0b0300e10daa91923c8cbd1496466962b777d0a5d87738755eea",
+      "generation_exclusions": {
+        "PermitWitnessTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline,ExclusiveDutchOrder witness)DutchOutput(address token,uint256 startAmount,uint256 endAmount,address recipient)ExclusiveDutchOrder(OrderInfo info,uint256 decayStartTime,uint256 decayEndTime,address exclusiveFiller,uint256 exclusivityOverrideBps,address inputToken,uint256 inputStartAmount,uint256 inputEndAmount,DutchOutput[] outputs)OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData)TokenPermissions(address token,uint256 amount)": [
+          "permitted.token",
+          "witness.inputToken",
+          "witness.outputs.[].token"
+        ]
+      }
+    },
+    "calldata-UniswapV3Router02": {
+      "source": "UniswapCalldataUniswapv3Router02.sol",
+      "contract": "UniswapCalldataUniswapv3Router02",
+      "upstream_sha256": "f2ced0c2ed44a7132a987365bb4f0aedd4d21091decc4aad3d327b7cb400193d",
+      "generation_exclusions": {
+        "exactInput((bytes path,address recipient,uint256 amountIn,uint256 amountOutMinimum) params)": [
+          "params.path"
+        ],
+        "exactInputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 amountIn,uint256 amountOutMinimum,uint160 sqrtPriceLimitX96) params)": [
+          "params.tokenIn",
+          "params.tokenOut",
+          "params.sqrtPriceLimitX96"
+        ],
+        "exactOutput((bytes path,address recipient,uint256 amountOut,uint256 amountInMaximum) params)": [
+          "params.path"
+        ],
+        "exactOutputSingle((address tokenIn,address tokenOut,uint24 fee,address recipient,uint256 amountOut,uint256 amountInMaximum,uint160 sqrtPriceLimitX96) params)": [
+          "params.tokenIn",
+          "params.tokenOut",
+          "params.sqrtPriceLimitX96"
+        ],
+        "swapExactTokensForTokens(uint256 amountIn,uint256 amountOutMin,address[] path,address to)": [
+          "path.[]"
+        ],
+        "swapTokensForExactTokens(uint256 amountOut,uint256 amountInMax,address[] path,address to)": [
+          "path.[]"
+        ]
+      }
+    },
+    "eip712-UniswapX-LimitOrder": {
+      "source": "UniswapEip712UniswapxLimitorder.sol",
+      "contract": "UniswapEip712UniswapxLimitorder",
+      "upstream_sha256": "bf6cf92c550d68e2890d2f214746ee87e50e258b0d8b722c80e8b2aedb842b45",
+      "generation_exclusions": {
+        "PermitWitnessTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline,LimitOrder witness)LimitOrder(OrderInfo info,address inputToken,uint256 inputAmount,OutputToken[] outputs)OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData)OutputToken(address token,uint256 amount,address recipient)TokenPermissions(address token,uint256 amount)": [
+          "permitted.token",
+          "witness.inputToken",
+          "witness.outputs.[].token"
+        ]
+      }
+    },
+    "eip712-uniswap-V2DutchOrder": {
+      "source": "UniswapEip712UniswapV2Dutchorder.sol",
+      "contract": "UniswapEip712UniswapV2Dutchorder",
+      "upstream_sha256": "3ca663e3e7cb74682a34bacb039292935dcf44d907a14e249503261b4090f187",
+      "generation_exclusions": {
+        "PermitWitnessTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline,V2DutchOrder witness)DutchOutput(address token,uint256 startAmount,uint256 endAmount,address recipient)OrderInfo(address reactor,address swapper,uint256 nonce,uint256 deadline,address additionalValidationContract,bytes additionalValidationData)TokenPermissions(address token,uint256 amount)V2DutchOrder(OrderInfo info,address cosigner,address baseInputToken,uint256 baseInputStartAmount,uint256 baseInputEndAmount,DutchOutput[] baseOutputs)": [
+          "permitted.token",
+          "witness.baseInputToken",
+          "witness.baseOutputs.[].token"
+        ]
+      }
+    }
+  },
+  "include_sha256": "42308b598001e669b81aeb2a29d37bb28d7f422aed9ff5c44b443ce963f4b8ab"
+}
