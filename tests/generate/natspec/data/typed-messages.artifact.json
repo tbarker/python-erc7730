@@ -1,0 +1,115 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "1dca474df8b25097029ec5fde842baab026d994c17e9b81d7643bceafc7aee83",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quantity",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct TypedMessages.Order[]",
+          "name": "orders",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "describeBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
+        }
+      ],
+      "name": "describePermit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
+        }
+      ],
+      "name": "describeSigner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        }
+      ],
+      "name": "unrelated",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "kind": "dev",
+    "methods": {
+      "describeBatch((address,uint256)[])": {
+        "custom:clearsig-example": "params=([(0x1111111111111111111111111111111111111111,2),(0x2222222222222222222222222222222222222222,3)]) intent=\"Sign orders\"",
+        "custom:clearsig-format": "orders.maker=raw orders.quantity=raw",
+        "custom:clearsig-typed-data": "Batch",
+        "params": {
+          "orders": "Orders"
+        }
+      },
+      "describePermit(uint256)": {
+        "custom:clearsig-example": "params=(9007199254740993) intent=\"Permit 9007199254740993\" fields={\"Quantity\":\"9007199254740993\"}",
+        "custom:clearsig-format": "quantity=raw",
+        "custom:clearsig-intent": "Permit",
+        "custom:clearsig-typed-data": "Permit",
+        "params": {
+          "quantity": "Quantity"
+        }
+      },
+      "describeSigner(uint256)": {
+        "custom:clearsig-example": "params=(1) intent=\"Sign\" fields={\"Signer\":\"0x1111111111111111111111111111111111111111\"}",
+        "custom:clearsig-format": "quantity=raw @.from=raw",
+        "custom:clearsig-label": "@.from=Signer",
+        "custom:clearsig-typed-data": "Signed"
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "describeBatch((address,uint256)[])": {
+        "notice": "Sign orders"
+      },
+      "describePermit(uint256)": {
+        "notice": "Permit `quantity`"
+      },
+      "describeSigner(uint256)": {
+        "notice": "Sign"
+      }
+    },
+    "version": 1
+  }
+}

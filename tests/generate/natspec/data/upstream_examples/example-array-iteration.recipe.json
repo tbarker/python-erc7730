@@ -1,0 +1,18 @@
+{
+  "context": {
+    "contract": {
+      "deployments": [
+        {
+          "chainId": 1,
+          "address": "0x123456789abcdef0112233445566778899aabbcc"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "info": {
+      "url": "https://example.io/",
+      "deploymentDate": "2017-11-28T12:41:21Z"
+    }
+  }
+}

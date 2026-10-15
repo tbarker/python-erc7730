@@ -1,0 +1,95 @@
+{
+  "abi": [
+    {
+      "type": "function",
+      "name": "settle",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "order",
+          "type": "tuple",
+          "components": [
+            {
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "name": "deadline",
+              "type": "uint256"
+            }
+          ]
+        },
+        {
+          "name": "nonce",
+          "type": "uint256"
+        }
+      ],
+      "outputs": []
+    },
+    {
+      "type": "function",
+      "name": "transfer",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "methods": {
+      "settle((address,uint256,uint256),uint256)": {
+        "notice": "Settle `order.amount / 10**18` tokens for `order.maker` before `order.deadline`."
+      },
+      "transfer(address,uint256)": {
+        "notice": "Send `amount` to `to`."
+      }
+    }
+  },
+  "devdoc": {
+    "version": 1,
+    "kind": "dev",
+    "title": "Order Exchange",
+    "author": "Compiler Owner",
+    "custom:clearsig-format": "amount=raw deadline=date",
+    "custom:clearsig-date-encoding": "deadline=blockheight",
+    "custom:clearsig-exclude": "nonce",
+    "methods": {
+      "settle((address,uint256,uint256),uint256)": {
+        "params": {
+          "order": "Order to settle",
+          "nonce": "Replay protection"
+        },
+        "custom:clearsig-intent": "Settle order",
+        "custom:clearsig-interpolated-intent": "Settle {order.amount} for {order.maker} before {order.deadline}.",
+        "custom:clearsig-format": "order.amount=tokenAmount",
+        "custom:clearsig-token-path": "order.amount=@.to",
+        "custom:clearsig-date-encoding": "order.deadline=timestamp",
+        "custom:clearsig-label": "order.maker=Maker order.amount=Amount order.deadline=Deadline"
+      },
+      "transfer(address,uint256)": {
+        "params": {
+          "to": "Recipient",
+          "amount": "Amount in tokens: `amount / 10**18`"
+        },
+        "custom:clearsig-intent": "Send tokens",
+        "custom:clearsig-format": "amount=tokenAmount",
+        "custom:clearsig-token-path": "amount=@.to",
+        "custom:clearsig-label": "amount=Amount"
+      }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "abi": [
+    {
+      "type": "function",
+      "name": "transfer",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "type": "function",
+      "name": "approve",
+      "stateMutability": "nonpayable",
+      "inputs": [
+        {
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "userdoc": {
+    "version": 1,
+    "kind": "user",
+    "notice": "Simple ERC-20",
+    "methods": {
+      "transfer(address,uint256)": {
+        "notice": "Send tokens"
+      },
+      "approve(address,uint256)": {
+        "notice": "Approve a spender"
+      }
+    }
+  },
+  "devdoc": {
+    "version": 1,
+    "kind": "dev",
+    "title": "Test Token",
+    "methods": {
+      "transfer(address,uint256)": {
+        "params": {
+          "to": "Recipient",
+          "amount": "Amount to send"
+        },
+        "custom:clearsig-intent": "Send",
+        "custom:clearsig-format": "amount=tokenAmount",
+        "custom:clearsig-token-path": "amount=@.to"
+      },
+      "approve(address,uint256)": {
+        "params": {
+          "spender": "Spender",
+          "amount": "Allowance"
+        },
+        "custom:clearsig-intent": "Approve",
+        "custom:clearsig-exclude": "amount"
+      }
+    }
+  }
+}

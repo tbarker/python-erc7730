@@ -1,0 +1,21 @@
+{
+  "context": {
+    "eip712": {
+      "domain": {
+        "name": "Account",
+        "version": "1"
+      },
+      "deployments": [
+        {
+          "chainId": 1,
+          "address": "0x1111111111111111111111111111111111111111"
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "info": {
+      "url": "https://eips.ethereum.org/EIPS/eip-4337"
+    }
+  }
+}

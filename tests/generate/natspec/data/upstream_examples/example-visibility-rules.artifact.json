@@ -1,0 +1,76 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "25f046151e666ed60041c2f21d4e8a35259bc4ecc3d1dcb6575992baeb8a7b58",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "referrer",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "rfu",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "legacy",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "kind": "dev",
+    "methods": {
+      "transfer(address,uint256,address,address,uint256,uint256)": {
+        "custom:clearsig-exclude": "rfu",
+        "custom:clearsig-format": "to=addressName value=tokenAmount referrer=addressName rfu=raw legacy=raw fee=amount",
+        "custom:clearsig-if-not-in": "fee=[0]",
+        "custom:clearsig-intent": "Send",
+        "custom:clearsig-must-match": "legacy=[0]",
+        "custom:clearsig-token-path": "value=@.to",
+        "custom:clearsig-visible": "to=\"always\" value=\"always\" referrer=\"optional\"",
+        "params": {
+          "fee": "Fee Amount",
+          "legacy": "Legacy Amount",
+          "referrer": "Referrer",
+          "to": "To",
+          "value": "Amount"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "transfer(address,uint256,address,address,uint256,uint256)": {
+        "notice": "Send `value` to `to`"
+      }
+    },
+    "version": 1
+  }
+}

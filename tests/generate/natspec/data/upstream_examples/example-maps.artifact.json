@@ -1,0 +1,50 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "09cdc38e40732b2b4f59965f1b0f7118e0c4910629c0728780df55c463abf43f",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "minShares",
+          "type": "uint256"
+        }
+      ],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "custom:clearsig-map": "underlyingToken[1]=0x00000000000000000000000000000000deadbeef,underlyingToken[137]=0x00000000000000000000000000000000feedface,underlyingToken[42161]=0x00000000000000000000000000000000cafebabe,shareToken[1]=0x00000000000000000000000000000000abcdef01,shareToken[137]=0x00000000000000000000000000000000abcdef02,shareToken[42161]=0x00000000000000000000000000000000abcdef03,",
+    "kind": "dev",
+    "methods": {
+      "deposit(uint256,uint256)": {
+        "custom:clearsig-format": "amount=tokenAmount minShares=tokenAmount",
+        "custom:clearsig-intent": "Deposit",
+        "custom:clearsig-token": "amount=map(underlyingToken,@.chainId) minShares=map(shareToken,@.chainId)",
+        "params": {
+          "amount": "Deposit Amount",
+          "minShares": "Min Received Shares"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "deposit(uint256,uint256)": {
+        "notice": "Deposit `amount` to get at least `minShares`"
+      }
+    },
+    "version": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "kind": "user",
+  "notice": "Simple ERC-20",
+  "methods": {
+    "transfer(address,uint256)": {
+      "notice": "Send tokens"
+    },
+    "approve(address,uint256)": {
+      "notice": "Approve a spender"
+    }
+  }
+}

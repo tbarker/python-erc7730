@@ -1,0 +1,143 @@
+{
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "deadline",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ClearsigToken.Order",
+          "name": "order",
+          "type": "tuple"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        }
+      ],
+      "name": "settle",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "transfer",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "custom:clearsig-exclude": "nonce",
+    "custom:clearsig-format": "amount=tokenAmount",
+    "custom:clearsig-token-path": "amount=@.to",
+    "kind": "dev",
+    "methods": {
+      "approve(address,uint256)": {
+        "custom:clearsig-example": "params=(amount=1500000,spender=Alice) intent=\"Approve\"",
+        "custom:clearsig-exclude": "amount",
+        "custom:clearsig-intent": "Approve",
+        "params": {
+          "amount": "Allowance",
+          "spender": "Spender"
+        }
+      },
+      "settle((address,uint256,uint256),uint256)": {
+        "custom:clearsig-date-encoding": "order.deadline=timestamp",
+        "custom:clearsig-example": "params=((Alice,1500000,1700000000),42) intent=\"Settle order\"",
+        "custom:clearsig-format": "order.amount=tokenAmount",
+        "custom:clearsig-intent": "Settle order",
+        "custom:clearsig-label": "order.maker=Maker order.amount=Amount order.deadline=Deadline",
+        "custom:clearsig-token-path": "order.amount=@.to",
+        "params": {
+          "nonce": "Replay protection",
+          "order": "The order to settle"
+        }
+      },
+      "transfer(address,uint256)": {
+        "custom:clearsig-example": "params=(Alice,1500000) intent=\"Send 1.5 USDC to Alice\"",
+        "custom:clearsig-intent": "Send",
+        "params": {
+          "amount": "Amount to send",
+          "to": "Recipient"
+        }
+      }
+    },
+    "title": "Test Token",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "approve(address,uint256)": {
+        "notice": "Approve a spender"
+      },
+      "settle((address,uint256,uint256),uint256)": {
+        "notice": "Settle an order"
+      },
+      "transfer(address,uint256)": {
+        "notice": "Send `amount` to `to`"
+      }
+    },
+    "version": 1
+  }
+}
