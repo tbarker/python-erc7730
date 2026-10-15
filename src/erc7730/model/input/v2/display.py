@@ -7,8 +7,9 @@ JSON schema: https://github.com/LedgerHQ/clear-signing-erc7730-registry/blob/mas
 
 from typing import Annotated, Any, ForwardRef, Self
 
-from pydantic import Discriminator, Field, Tag, model_validator
+from pydantic import BaseModel, Discriminator, Field, Tag, model_validator
 
+from erc7730.common.solidity_types import PlaintextType
 from erc7730.model.base import Model
 from erc7730.model.display import (
     AddressNameType,
@@ -21,7 +22,7 @@ from erc7730.model.input.v2.unions import (
     field_parameters_discriminator,
     visibility_rules_discriminator,
 )
-from erc7730.model.types import HexStr, Id, MixedCaseAddress, ScalarType
+from erc7730.model.types import Id, MixedCaseAddress, ScalarType
 
 # ruff: noqa: N815 - camel case field names are tolerated to match schema
 
@@ -163,7 +164,7 @@ class InputTokenAmountParameters(Model):
         '"Unknown token" warning. Exactly one of "tokenPath" or "token" must be set.',
     )
 
-    token: DescriptorPathStr | MixedCaseAddress | InputMapReference | None = Field(
+    token: InputMapReference | DescriptorPathStr | MixedCaseAddress | None = Field(
         default=None,
         title="Token",
         description=(
@@ -183,11 +184,11 @@ class InputTokenAmountParameters(Model):
         )
     )
 
-    threshold: DescriptorPathStr | HexStr | int | None = Field(
+    threshold: DescriptorPathStr | str | int | None = Field(
         default=None,
         title="Unlimited Threshold",
         description="The threshold above which the amount should be displayed using the message parameter rather than "
-        "the real amount (encoded as an int or byte array).",
+        "the real amount (a decimal or hexadecimal string in the v2 schema).",
     )
 
     message: DescriptorPathStr | str | None = Field(
@@ -196,7 +197,7 @@ class InputTokenAmountParameters(Model):
         description="The message to display when the amount is above the threshold.",
     )
 
-    chainId: int | DescriptorPathStr | InputMapReference | None = Field(
+    chainId: InputMapReference | int | DescriptorPathStr | None = Field(
         default=None,
         title="Chain ID",
         description=(
@@ -230,23 +231,21 @@ class InputAddressNameParameters(Model):
     Address Names Formatting Parameters.
     """
 
-    types: list[AddressNameType] | DescriptorPathStr | None = Field(
+    types: Annotated[list[AddressNameType], Field(min_length=1)] | DescriptorPathStr | None = Field(
         default=None,
         title="Address Type",
         description="An array of expected types of the address. If set, the wallet SHOULD check that the address "
         "matches one of the types provided.",
-        min_length=1,
     )
 
-    sources: list[str] | DescriptorPathStr | None = Field(
+    sources: Annotated[list[str], Field(min_length=1)] | DescriptorPathStr | None = Field(
         default=None,
         title="Trusted Sources",
         description="An array of acceptable sources for names. If set, the wallet SHOULD restrict name lookup to "
         "relevant sources.",
-        min_length=1,
     )
 
-    senderAddress: MixedCaseAddress | list[MixedCaseAddress] | DescriptorPathStr | InputMapReference | None = Field(
+    senderAddress: InputMapReference | MixedCaseAddress | list[MixedCaseAddress] | DescriptorPathStr | None = Field(
         default=None,
         title="Sender Address",
         description="Either a string or an array of strings. If the address pointed to by addressName is equal to one "
@@ -259,21 +258,19 @@ class InputInteroperableAddressNameParameters(Model):
     Interoperable Address Names Formatting Parameters.
     """
 
-    types: list[AddressNameType] | DescriptorPathStr | None = Field(
+    types: Annotated[list[AddressNameType], Field(min_length=1)] | DescriptorPathStr | None = Field(
         default=None,
         title="Address Type",
         description="An array of expected types of the address (wallet, eoa, contract, token, collection).",
-        min_length=1,
     )
 
-    sources: list[str] | DescriptorPathStr | None = Field(
+    sources: Annotated[list[str], Field(min_length=1)] | DescriptorPathStr | None = Field(
         default=None,
         title="Trusted Sources",
         description="An array of acceptable sources for names.",
-        min_length=1,
     )
 
-    senderAddress: MixedCaseAddress | list[MixedCaseAddress] | DescriptorPathStr | InputMapReference | None = Field(
+    senderAddress: InputMapReference | MixedCaseAddress | list[MixedCaseAddress] | DescriptorPathStr | None = Field(
         default=None,
         title="Sender Address",
         description="Either a string or an array of strings for sender address matching.",
@@ -292,7 +289,7 @@ class InputCallDataParameters(Model):
         '"calleePath" or "callee" must be set.',
     )
 
-    callee: DescriptorPathStr | MixedCaseAddress | InputMapReference | None = Field(
+    callee: InputMapReference | DescriptorPathStr | MixedCaseAddress | None = Field(
         default=None,
         title="Callee",
         description=(
@@ -308,7 +305,7 @@ class InputCallDataParameters(Model):
         'one of "selectorPath" or "selector" must be set.',
     )
 
-    selector: DescriptorPathStr | str | InputMapReference | None = Field(
+    selector: InputMapReference | DescriptorPathStr | str | None = Field(
         default=None,
         title="Called Selector",
         description=(
@@ -324,7 +321,7 @@ class InputCallDataParameters(Model):
         'one of "amountPath" or "amount" must be set.',
     )
 
-    amount: int | DescriptorPathStr | InputMapReference | None = Field(
+    amount: InputMapReference | int | DescriptorPathStr | None = Field(
         default=None,
         title="Amount",
         description="The amount being transferred, if not contained in the calldata or as map reference. Only "
@@ -338,7 +335,7 @@ class InputCallDataParameters(Model):
         'one of "spenderPath" or "spender" must be set.',
     )
 
-    spender: DescriptorPathStr | MixedCaseAddress | InputMapReference | None = Field(
+    spender: InputMapReference | DescriptorPathStr | MixedCaseAddress | None = Field(
         default=None,
         title="Spender",
         description="the spender, if not contained in the calldata or as map reference. Only "
@@ -376,7 +373,7 @@ class InputNftNameParameters(Model):
         '"collectionPath" or "collection" must be set.',
     )
 
-    collection: DescriptorPathStr | MixedCaseAddress | InputMapReference | None = Field(
+    collection: InputMapReference | DescriptorPathStr | MixedCaseAddress | None = Field(
         default=None,
         title="Collection",
         description="The address of the collection contract, as a constant value or map reference. Exactly one of "
@@ -439,7 +436,7 @@ class InputTokenTickerParameters(Model):
     Token Ticker Formatting Parameters.
     """
 
-    chainId: int | DescriptorPathStr | InputMapReference | None = Field(
+    chainId: InputMapReference | int | DescriptorPathStr | None = Field(
         default=None,
         title="Chain ID",
         description=(
@@ -476,7 +473,7 @@ class InputEncryptionParameters(Model):
         description="The encryption scheme used to produce the handle.",
     )
 
-    plaintextType: str | None = Field(
+    plaintextType: PlaintextType | None = Field(
         default=None,
         title="Plaintext Type",
         description="Solidity type of the decrypted value (the handle does not encode this).",
@@ -504,10 +501,36 @@ InputFieldParameters = Annotated[
 ]
 
 
+INPUT_PARAMETER_MODELS: dict[str, type[Model]] = {
+    FieldFormat.ADDRESS_NAME: InputAddressNameParameters,
+    FieldFormat.INTEROPERABLE_ADDRESS_NAME: InputInteroperableAddressNameParameters,
+    FieldFormat.CALL_DATA: InputCallDataParameters,
+    FieldFormat.TOKEN_AMOUNT: InputTokenAmountParameters,
+    FieldFormat.TOKEN_TICKER: InputTokenTickerParameters,
+    FieldFormat.NFT_NAME: InputNftNameParameters,
+    FieldFormat.DATE: InputDateParameters,
+    FieldFormat.UNIT: InputUnitParameters,
+    FieldFormat.ENUM: InputEnumParameters,
+}
+
+
 class InputFieldDefinition(Model):
     """
     A field formatter, containing formatting information of a single field in a message.
     """
+
+    @model_validator(mode="before")
+    @classmethod
+    def _parameters_for_format(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or data.get("params") is None or data.get("format") is None:
+            return data
+        model = INPUT_PARAMETER_MODELS.get(data["format"])
+        if model is None:
+            raise ValueError(f"Format {data['format']} does not accept parameters")
+        params = data["params"]
+        if isinstance(params, BaseModel):
+            params = params.model_dump(by_alias=True, exclude_none=True)
+        return data | {"params": model.model_validate(params, strict=False)}
 
     id: Id | None = Field(
         alias="$id",
@@ -618,6 +641,7 @@ class InputFieldGroup(Model):
     )
 
 
+#: A display leaf, group, or reusable field reference.
 InputField = Annotated[
     Annotated[InputReference, Tag("reference")]
     | Annotated[InputFieldDescription, Tag("field_description")]
