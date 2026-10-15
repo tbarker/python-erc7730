@@ -128,20 +128,18 @@ class InputAddressNameParameters(Model):
     Address Names Formatting Parameters.
     """
 
-    types: list[AddressNameType] | DescriptorPathStr | None = Field(
+    types: Annotated[list[AddressNameType], Field(min_length=1)] | DescriptorPathStr | None = Field(
         default=None,
         title="Address Type",
         description="An array of expected types of the address. If set, the wallet SHOULD check that the address "
         "matches one of the types provided.",
-        min_length=1,
     )
 
-    sources: list[str] | DescriptorPathStr | None = Field(
+    sources: Annotated[list[str], Field(min_length=1)] | DescriptorPathStr | None = Field(
         default=None,
         title="Trusted Sources",
         description="An array of acceptable sources for names. If set, the wallet SHOULD restrict name lookup to "
         "relevant sources.",
-        min_length=1,
     )
 
     senderAddress: MixedCaseAddress | list[MixedCaseAddress] | DescriptorPathStr | None = Field(

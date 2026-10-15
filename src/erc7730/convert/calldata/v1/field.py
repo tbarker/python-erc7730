@@ -5,9 +5,10 @@ Conversion of ERC-7730 field definitions to calldata descriptor instructions.
 from typing import assert_never, cast
 
 from erc7730.common.output import OutputAdder
+from erc7730.convert.calldata.trusted_names import convert_name_sources
 from erc7730.convert.calldata.v1.abi import ABITree
 from erc7730.convert.calldata.v1.path import convert_value
-from erc7730.model.calldata.types import TrustedNameSource, TrustedNameType
+from erc7730.model.calldata.types import TrustedNameType
 from erc7730.model.calldata.v1.instruction import (
     CalldataDescriptorInstructionFieldV1,
 )
@@ -106,7 +107,7 @@ def convert_param(
             address_params = cast(ResolvedAddressNameParameters | None, field.params)
 
             types: list[TrustedNameType] = []
-            sources: list[TrustedNameSource] = []
+            input_sources: list[str] | None = None
             sender_addresses: list[Address] | None = None
 
             if address_params is not None:
@@ -117,35 +118,13 @@ def convert_param(
                         else:
                             types.append(TrustedNameType(input_type))
 
-                # since sources are free form in ERC-7730, we apply the following algorithm:
-                #   1) assign valid sources based on type
-                #   2) add sources that perfectly match by name
-                for type in types:
-                    match type:
-                        case TrustedNameType.EOA | TrustedNameType.WALLET | TrustedNameType.COLLECTION:
-                            sources.append(TrustedNameSource.ENS)
-                            sources.append(TrustedNameSource.UNSTOPPABLE_DOMAIN)
-                            sources.append(TrustedNameSource.FREENAME)
-                        case TrustedNameType.SMART_CONTRACT | TrustedNameType.TOKEN:
-                            sources.append(TrustedNameSource.CRYPTO_ASSET_LIST)
-                        case TrustedNameType.CONTEXT_ADDRESS:
-                            sources.append(TrustedNameSource.DYNAMIC_RESOLVER)
-                        case _:
-                            assert_never(type)
-
-                if (input_sources := address_params.sources) is not None:
-                    for input_source in input_sources:
-                        if input_source.lower() == "local":
-                            sources.append(TrustedNameSource.LOCAL_ADDRESS_BOOK)
-                            sources.append(TrustedNameSource.MULTISIG_ADDRESS_BOOK)
-                        if input_source.lower() in set(TrustedNameSource):
-                            sources.append(TrustedNameSource(input_source.lower()))
+                input_sources = address_params.sources
 
                 sender_addresses = address_params.senderAddress
 
-            # default to all types / sources allowed, else deduplicate
+            if (sources := convert_name_sources(types, input_sources, out)) is None:
+                return None
             types = list(TrustedNameType) if not types else list(dict.fromkeys(types))
-            sources = list(TrustedNameSource) if not sources else list(dict.fromkeys(sources))
 
             return CalldataDescriptorParamTrustedNameV1(
                 value=value, types=types, sources=sources, sender_addresses=sender_addresses

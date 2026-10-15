@@ -2,6 +2,7 @@ from typing import assert_never, cast
 
 from erc7730.common.abi import ABIDataType
 from erc7730.common.output import OutputAdder
+from erc7730.convert.resolved.address_names import resolve_name_lists
 from erc7730.convert.resolved.constants import ConstantProvider
 from erc7730.convert.resolved.enums import get_enum, get_enum_id
 from erc7730.convert.resolved.values import resolve_path_or_constant_value
@@ -74,11 +75,11 @@ def resolve_address_name_parameters(
         else:
             raise Exception("Invalid senderAddress type")
 
-    return ResolvedAddressNameParameters(
-        types=constants.resolve_or_none(params.types, out),
-        sources=constants.resolve_or_none(params.sources, out),
-        senderAddress=sender_address,
-    )
+    if (
+        names := resolve_name_lists(params.types, params.sources, lambda value: constants.resolve(value, out), out)
+    ) is None:
+        return None
+    return ResolvedAddressNameParameters.model_validate({"senderAddress": sender_address, **names}, strict=False)
 
 
 def resolve_calldata_parameters(

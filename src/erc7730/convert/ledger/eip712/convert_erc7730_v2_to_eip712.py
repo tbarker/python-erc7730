@@ -30,7 +30,7 @@ from erc7730.convert.resolved.v2.convert_erc7730_input_to_resolved import ERC773
 from erc7730.model.display import AddressNameType
 from erc7730.model.input.v2.context import InputEIP712Context
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
-from erc7730.model.input.v2.format import FieldFormat
+from erc7730.model.input.v2.format import FieldFormat, VisibilityRule
 from erc7730.model.paths import ContainerPath, DataPath
 from erc7730.model.paths.path_ops import to_relative
 from erc7730.model.paths.path_parser import to_path
@@ -166,6 +166,12 @@ def _convert_v2_field(
         # Skip hidden fields (equivalent of v1 "excluded")
         if field.visible == "never":
             return []
+
+        if field.encryption is not None or field.visible not in (None, VisibilityRule.ALWAYS):
+            return out.error(
+                title="Unsupported V2 display restriction",
+                message=f"Legacy EIP-712 export cannot preserve encryption or conditional visibility for {field.path}.",
+            )
 
         if (output_field := _convert_v2_field_description(field, out)) is None:
             return None
@@ -405,28 +411,14 @@ def _convert_trusted_names_sources(
         return None
     name_sources: list[EIP712NameSource] = []
 
-    if names is not None:
-        for name in names:
-            match name:
-                case EIP712NameType.EOA | EIP712NameType.WALLET | EIP712NameType.COLLECTION:
-                    name_sources.append(EIP712NameSource.ENS)
-                    name_sources.append(EIP712NameSource.UNSTOPPABLE_DOMAIN)
-                    name_sources.append(EIP712NameSource.FREENAME)
-                case EIP712NameType.SMART_CONTRACT | EIP712NameType.TOKEN:
-                    name_sources.append(EIP712NameSource.CRYPTO_ASSET_LIST)
-                case EIP712NameType.CONTEXT_ADDRESS:
-                    name_sources.append(EIP712NameSource.DYNAMIC_RESOLVER)
-                case _:
-                    pass
+    for source in sources:
+        try:
+            converted = EIP712NameSource.LOCAL_ADDRESS_BOOK if source == "local" else EIP712NameSource(source)
+        except ValueError as exc:
+            raise ValueError(f"Legacy EIP-712 export cannot preserve address-name source {source!r}") from exc
+        if converted not in name_sources:
+            name_sources.append(converted)
 
-    for name_source in sources:
-        if name_source == "local":
-            name_sources.append(EIP712NameSource.LOCAL_ADDRESS_BOOK)
-        elif name_source in set(EIP712NameSource) and name_source not in name_sources:
-            name_sources.append(EIP712NameSource(name_source))
-
-    if not name_sources:
-        name_sources = list(EIP712NameSource)
     return name_sources
 
 
