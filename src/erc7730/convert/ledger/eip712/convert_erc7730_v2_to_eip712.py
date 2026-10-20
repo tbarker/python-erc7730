@@ -30,7 +30,7 @@ from erc7730.convert.resolved.v2.convert_erc7730_input_to_resolved import ERC773
 from erc7730.model.display import AddressNameType
 from erc7730.model.input.v2.context import InputEIP712Context
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
-from erc7730.model.input.v2.format import FieldFormat, VisibilityRule
+from erc7730.model.input.v2.format import FieldFormat
 from erc7730.model.paths import ContainerPath, DataPath
 from erc7730.model.paths.path_ops import to_relative
 from erc7730.model.paths.path_parser import to_path
@@ -45,6 +45,7 @@ from erc7730.model.resolved.v2.display import (
     ResolvedFieldGroup,
     ResolvedTokenAmountParameters,
     ResolvedValueMap,
+    ResolvedVisibilityConditions,
 )
 
 # ---------------------------------------------------------------------------
@@ -167,10 +168,18 @@ def _convert_v2_field(
         if field.visible == "never":
             return []
 
-        if field.encryption is not None or field.visible not in (None, VisibilityRule.ALWAYS):
+        if field.encryption is not None or (
+            isinstance(field.visible, ResolvedVisibilityConditions) and field.visible.mustMatch is not None
+        ):
             return out.error(
                 title="Unsupported V2 display restriction",
-                message=f"Legacy EIP-712 export cannot preserve encryption or conditional visibility for {field.path}.",
+                message=f"Legacy EIP-712 export cannot preserve encryption or mustMatch constraints for {field.path}.",
+            )
+
+        if isinstance(field.visible, ResolvedVisibilityConditions) and field.visible.ifNotIn is not None:
+            out.warning(
+                title="Conditional visibility omitted",
+                message=f"Legacy EIP-712 export displays {field.path} unconditionally; ifNotIn is not supported.",
             )
 
         if (output_field := _convert_v2_field_description(field, out)) is None:

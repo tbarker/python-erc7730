@@ -172,8 +172,6 @@ def test_valid_plaintext_types(type_: str | None) -> None:
     [
         {"encryption": {"scheme": "fhevm", "plaintextType": "uint64"}},
         {"visible": {"mustMatch": [1]}},
-        {"visible": {"ifNotIn": [0]}},
-        {"visible": "optional"},
     ],
 )
 def test_legacy_export_rejects_restrictions(restriction: dict[str, Any]) -> None:
@@ -245,3 +243,14 @@ def test_omission_allowed_but_interpolation_requires_formatter(
     assert any(item.title == "Missing display format" for item in out.outputs) is calldata
     if template:
         assert any(item.title == "Invalid interpolated intent" for item in out.outputs), out.outputs
+
+
+@pytest.mark.parametrize("visibility", ["optional", {"ifNotIn": [0]}])
+def test_legacy_export_preserves_visibility_compatibility(visibility: Any) -> None:
+    source = InputERC7730Descriptor.model_validate(
+        raw("Message(uint256 value)", [leaf("value", visible=visibility)]), strict=False
+    )
+    out = ListOutputAdder()
+    assert ERC7730V2toEIP712Converter().convert(source, out) is not None
+    assert not out.has_errors
+    assert any(item.title == "Conditional visibility omitted" for item in out.outputs) == isinstance(visibility, dict)
