@@ -15,6 +15,7 @@ from erc7730.common.output import ListOutputAdder
 from erc7730.common.templates import translate_template
 from erc7730.convert.resolved.v2.convert_erc7730_input_to_resolved import ERC7730InputToResolved
 from erc7730.generate.natspec.generate import generate_natspec_descriptor
+from erc7730.lint.v2.json_schema import schema_name
 from erc7730.model.input.v2.context import InputDeployment
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 from erc7730.model.input.v2.metadata import InputMetadata
@@ -70,7 +71,7 @@ def semantic(descriptor: InputERC7730Descriptor, *, fragment: bool = False) -> d
 
     value = clean(value)
     if "$schema" in value:
-        value["$schema"] = value["$schema"].rsplit("/", 1)[-1]
+        value["$schema"] = schema_name(value)
     for fmt in value["display"]["formats"].values():
         paths: set[str] = set()
 

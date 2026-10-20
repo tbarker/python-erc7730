@@ -177,7 +177,7 @@ def generate_natspec_descriptor(
             logging.getLogger(__name__).warning(message)
     descriptor = InputERC7730Descriptor.model_validate(
         {
-            "$schema": "https://eips.ethereum.org/assets/eip-7730/erc7730-v2.schema.json",
+            "$schema": "https://eips.ethereum.org/assets/eip-7730/erc7730-v2.1.0.schema.json",
             "context": context,
             "metadata": metadata,
             "display": display,

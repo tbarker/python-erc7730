@@ -39,7 +39,7 @@ def test_natspec_template(artifact: dict[str, Any]) -> None:
     assert format.intent == "Send"
     assert format.interpolatedIntent == "Send {amount} to {to}. Confirm this transfer."
     assert result.metadata.contractName == "Test Token"
-    assert result.schema_ is not None and "erc7730-v2.schema.json" in result.schema_
+    assert result.schema_ is not None and "erc7730-v2.1.0.schema.json" in result.schema_
     schema = json.loads(Path("specs/erc7730-v2.schema.json").read_text())
     jsonschema.validate(json.loads(result.to_json_string()), schema)
 
@@ -278,7 +278,7 @@ def test_descriptor_lint_requires_static_intent(
     valid = intent in ("Send", {"en": "Send"})
     assert result.exit_code == (0 if valid else 1), result.output
     if not valid:
-        assert "Missing static intent" in result.output
+        assert "Invalid V2 JSON schema" in result.output and "intent" in result.output
 
 
 @pytest.mark.parametrize(

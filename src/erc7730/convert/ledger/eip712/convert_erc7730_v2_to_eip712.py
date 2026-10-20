@@ -275,6 +275,13 @@ def _convert_v2_field_description(
         case FieldFormat.DATE:
             field_format = EIP712Format.DATETIME
         case FieldFormat.AMOUNT:
+            if field.params is not None and any(
+                getattr(field.params, name, None) is not None for name in ("threshold", "message")
+            ):
+                return out.error(
+                    title="Unsupported native amount parameters",
+                    message="Legacy export cannot preserve native amount threshold/message parameters.",
+                )
             field_format = EIP712Format.AMOUNT
         case FieldFormat.TOKEN_AMOUNT:
             field_format = EIP712Format.AMOUNT

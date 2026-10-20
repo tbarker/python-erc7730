@@ -157,4 +157,4 @@ exclude_dirs = ["tests"]
 
 [tool.codespell]
 ignore-words = ".codespellignore"
-skip = "pdm.lock,*.ambr,specs/*.schema.json,src/erc7730/lint/v2/erc7730-v2.schema.json"
+skip = "pdm.lock,*.ambr,specs/*.schema.json,src/erc7730/lint/v2/*.schema.json"

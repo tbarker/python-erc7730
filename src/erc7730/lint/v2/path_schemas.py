@@ -12,6 +12,7 @@ from erc7730.model.paths.path_schemas import FormatPaths, data_path_to_schema_pa
 from erc7730.model.resolved.display import ResolvedValue, ResolvedValuePath
 from erc7730.model.resolved.v2.display import (
     ResolvedAddressNameParameters,
+    ResolvedAmountParameters,
     ResolvedCallDataParameters,
     ResolvedDateParameters,
     ResolvedEnumParameters,
@@ -85,6 +86,8 @@ def compute_format_schema_paths(fmt: ResolvedFormat) -> FormatPaths:
                         add_path(field.params.chainIdPath)
                     case ResolvedNftNameParameters():
                         add_value(field.params.collection)
+                    case ResolvedAmountParameters():
+                        pass
                     case ResolvedDateParameters():
                         pass
                     case ResolvedUnitParameters():

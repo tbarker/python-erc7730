@@ -151,7 +151,24 @@ class InputReference(InputFieldBase):
     )
 
 
-class InputTokenAmountParameters(Model):
+class InputAmountParameters(Model):
+    """Native amount threshold and message parameters."""
+
+    threshold: DescriptorPathStr | str | int | None = Field(
+        default=None,
+        title="Unlimited Threshold",
+        description="The threshold at or above which the amount should be displayed using the message parameter "
+        "rather than the real amount (a decimal or hexadecimal string in the v2 schema).",
+    )
+
+    message: DescriptorPathStr | str | None = Field(
+        default=None,
+        title="Unlimited Message",
+        description="The message to display when the amount is at or above the threshold.",
+    )
+
+
+class InputTokenAmountParameters(InputAmountParameters):
     """
     Token Amount Formatting Parameters.
     """
@@ -182,19 +199,6 @@ class InputTokenAmountParameters(Model):
             description="An address or array of addresses, any of which are interpreted as an amount in native "
             "currency rather than a token.",
         )
-    )
-
-    threshold: DescriptorPathStr | str | int | None = Field(
-        default=None,
-        title="Unlimited Threshold",
-        description="The threshold above which the amount should be displayed using the message parameter rather than "
-        "the real amount (a decimal or hexadecimal string in the v2 schema).",
-    )
-
-    message: DescriptorPathStr | str | None = Field(
-        default=None,
-        title="Unlimited Message",
-        description="The message to display when the amount is above the threshold.",
     )
 
     chainId: InputMapReference | int | DescriptorPathStr | None = Field(
@@ -491,6 +495,7 @@ InputFieldParameters = Annotated[
     Annotated[InputAddressNameParameters, Tag("address_name")]
     | Annotated[InputInteroperableAddressNameParameters, Tag("interoperable_address_name")]
     | Annotated[InputCallDataParameters, Tag("call_data")]
+    | Annotated[InputAmountParameters, Tag("amount")]
     | Annotated[InputTokenAmountParameters, Tag("token_amount")]
     | Annotated[InputTokenTickerParameters, Tag("token_ticker")]
     | Annotated[InputNftNameParameters, Tag("nft_name")]
@@ -505,6 +510,7 @@ INPUT_PARAMETER_MODELS: dict[str, type[Model]] = {
     FieldFormat.ADDRESS_NAME: InputAddressNameParameters,
     FieldFormat.INTEROPERABLE_ADDRESS_NAME: InputInteroperableAddressNameParameters,
     FieldFormat.CALL_DATA: InputCallDataParameters,
+    FieldFormat.AMOUNT: InputAmountParameters,
     FieldFormat.TOKEN_AMOUNT: InputTokenAmountParameters,
     FieldFormat.TOKEN_TICKER: InputTokenTickerParameters,
     FieldFormat.NFT_NAME: InputNftNameParameters,

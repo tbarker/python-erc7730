@@ -75,7 +75,10 @@ Linter tries to guess the type of the contract, and provides warning about missi
 ## V2 and NatSpec checks
 
 `lint --strict` opts into published V2 schema, path, formatter-type and intent checks.
-Ordinary lint retains the existing ABI comparisons and coverage warnings.
+Strict validation uses bundled schemas: an exact `$schema` filename selects 2.0.0
+or 2.1.0; the major-version alias or an omitted URI selects 2.1.0. Unknown versions
+are rejected without fetching URLs. NatSpec generation pins 2.1.0. Ordinary lint
+retains the existing ABI comparisons and coverage warnings.
 Inputs may be omitted from display. Each format needs a nonblank static intent,
 and each interpolated reference needs exactly one always-visible formatter.
 

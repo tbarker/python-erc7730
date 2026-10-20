@@ -16,7 +16,7 @@ from erc7730.lint.v2.lint_validate_intent import ValidateIntentLinter
 from erc7730.lint.v2.lint_validate_schema import ValidateSchemaLinter
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 from erc7730.model.input.v2.display import InputEncryptionParameters
-from erc7730.model.resolved.v2.display import ResolvedEncryptionParameters, ResolvedFieldGroup
+from erc7730.model.resolved.v2.display import ResolvedEncryptionParameters, ResolvedFieldDescription, ResolvedFieldGroup
 
 ADDRESS = "0x1111111111111111111111111111111111111111"
 
@@ -72,8 +72,11 @@ def test_schema_checked_before_pydantic_coercion(tmp_path: Path) -> None:
     assert any(item.title == "Invalid V2 JSON schema" for item in out.outputs)
 
 
-def test_packaged_schema_matches_published_copy() -> None:
-    assert _validator().schema == json.loads((Path(__file__).parents[3] / "specs/erc7730-v2.schema.json").read_text())
+@pytest.mark.parametrize("version", ["2.0.0", "2.1.0"])
+def test_packaged_schema_matches_published_copy(version: str) -> None:
+    name = f"erc7730-v{version}.schema.json"
+    source = Path(__file__).parents[2] / "registries/clear-signing-erc7730-registry/specs" / name
+    assert _validator(name).schema == json.loads(source.read_text())
 
 
 @pytest.mark.parametrize("path,type_", [("order", "Order"), ("order.[0]", "Order[1]")])
@@ -254,3 +257,48 @@ def test_legacy_export_preserves_visibility_compatibility(visibility: Any) -> No
     assert ERC7730V2toEIP712Converter().convert(source, out) is not None
     assert not out.has_errors
     assert any(item.title == "Conditional visibility omitted" for item in out.outputs) == isinstance(visibility, dict)
+
+
+@pytest.mark.parametrize("version,valid", [("2.0.0", False), ("2.1.0", False), ("2", False)])
+def test_supported_schemas_require_intent(version: str, valid: bool) -> None:
+    from erc7730.lint.v2.json_schema import validate_json_schema
+
+    value = raw("Message(uint256 value)", [leaf("value")])
+    value["$schema"] = f"https://example.invalid/erc7730-v{version}.schema.json"
+    del value["display"]["formats"]["Message(uint256 value)"]["intent"]
+    out = ListOutputAdder()
+    assert validate_json_schema(value, out) == valid
+
+
+@pytest.mark.parametrize("reference", ["erc7730-v3.schema.json", "https://example.invalid/schema.json", 12])
+def test_unknown_schema_rejected(reference: Any) -> None:
+    from erc7730.lint.v2.json_schema import validate_json_schema
+
+    value = raw("Message(uint256 value)", [leaf("value")])
+    value["$schema"] = reference
+    out = ListOutputAdder()
+    assert not validate_json_schema(value, out)
+    assert out.outputs[0].title == "Unsupported V2 JSON schema"
+
+
+def test_native_amount_parameters_resolve_and_cannot_be_lost_in_legacy_export() -> None:
+    from erc7730.lint.v2.json_schema import validate_json_schema
+    from erc7730.model.resolved.v2.display import ResolvedAmountParameters
+
+    value = raw(
+        "Message(uint256 value)", [leaf("value", format="amount", params={"threshold": "1000", "message": "All"})]
+    )
+    out = ListOutputAdder()
+    assert validate_json_schema(value, out), out.outputs
+    source = InputERC7730Descriptor.model_validate(value, strict=False)
+    assert InputERC7730Descriptor.model_validate_json(source.to_json_string()) == source
+    resolved = ERC7730InputToResolved().convert(source, out)
+    assert resolved is not None, out.outputs
+    field = next(iter(resolved.display.formats.values())).fields[0]
+    assert isinstance(field, ResolvedFieldDescription)
+    assert isinstance(field.params, ResolvedAmountParameters)
+    assert field.params.threshold is not None
+    assert int(str(field.params.threshold), 16) == 1000
+    assert field.params.message == "All"
+    assert ERC7730V2toEIP712Converter().convert(source, out) is None
+    assert any(item.title == "Unsupported native amount parameters" for item in out.outputs)

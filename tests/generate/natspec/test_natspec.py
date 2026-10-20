@@ -662,7 +662,7 @@ def test_cli_exclusions(tmp_path: Path, artifact: dict[str, Any], monkeypatch: p
     output.write_text(result.stdout)
     lint = runner.invoke(app, ["lint", "--strict", str(output), "--skip-abi-validation"])
     assert lint.exit_code == 1, lint.output
-    assert "Missing static intent" in lint.output
+    assert "Invalid V2 JSON schema" in lint.output and "intent" in lint.output
     artifact["devdoc"]["methods"][TRANSFER] = {"custom:clearsig-exclude": "absent"}
     path.write_text(json.dumps(artifact))
     result = runner.invoke(app, args)

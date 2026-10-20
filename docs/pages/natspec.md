@@ -85,7 +85,7 @@ Names use kebab-case; values retain schema spelling (`tokenAmount`, `@.chainId`)
 | `@custom:clearsig-types`, `clearsig-sources` | `to=["contract"]`, `to=["local"]` | Optional address-name restrictions; generated `addressName` sources default to `["local","ens"]` |
 | `@custom:clearsig-sender-address` | `to=address-or-ref` | Sender address binding |
 | `@custom:clearsig-base`, `clearsig-decimals`, `clearsig-prefix` | `fee="%"`, `fee=2`, `fee=false` | Unit formatting |
-| `@custom:clearsig-threshold`, `clearsig-message` | `amount=0xffff`, `amount="Unlimited"` | Token-amount threshold and text |
+| `@custom:clearsig-threshold`, `clearsig-message` | `amount=0xffff`, `amount="Unlimited"` | Native/token amount threshold (inclusive) and text |
 | `@custom:clearsig-native-currency-address` | `amount=address` or address array | Native currency sentinels |
 | `@custom:clearsig-chain-id`, `clearsig-chain-id-path` | `amount=1`, `amount=@.chainId` | Token chain binding |
 | `@custom:clearsig-callee`, `clearsig-callee-path` | `data=address`, `data=#.target` | Embedded calldata destination |

@@ -12,6 +12,7 @@ from erc7730.convert.resolved.v2.values import (
 from erc7730.model.input.path import DescriptorPathStr
 from erc7730.model.input.v2.display import (
     InputAddressNameParameters,
+    InputAmountParameters,
     InputCallDataParameters,
     InputDateParameters,
     InputEncryptionParameters,
@@ -30,6 +31,7 @@ from erc7730.model.resolved.display import ResolvedValueConstant
 from erc7730.model.resolved.metadata import EnumDefinition
 from erc7730.model.resolved.v2.display import (
     ResolvedAddressNameParameters,
+    ResolvedAmountParameters,
     ResolvedCallDataParameters,
     ResolvedDateParameters,
     ResolvedEncryptionParameters,
@@ -64,6 +66,8 @@ def resolve_field_parameters(
             return resolve_calldata_parameters(prefix, params, constants, out)
         case InputTokenAmountParameters():
             return resolve_token_amount_parameters(prefix, params, constants, out)
+        case InputAmountParameters():
+            return resolve_amount_parameters(params, constants, out)
         case InputTokenTickerParameters():
             return resolve_token_ticker_parameters(prefix, params, constants, out)
         case InputNftNameParameters():
@@ -208,6 +212,33 @@ def resolve_token_amount_parameters(
     else:
         raise Exception("Invalid nativeCurrencyAddress type")
 
+    amount = resolve_amount_parameters(params, constants, out)
+    if amount is None:
+        return None
+
+    if (resolved_chain_id := _resolve_chain_id(prefix, params.chainId, constants, out)) is None and (
+        params.chainId is not None
+    ):
+        return None
+
+    return ResolvedTokenAmountParameters(
+        token=token_resolved,
+        nativeCurrencyAddress=resolved_addresses,
+        threshold=amount.threshold,
+        message=amount.message,
+        chainId=resolved_chain_id,
+        chainIdPath=(
+            data_or_container_path_concat(prefix, resolved_path)
+            if params.chainIdPath is not None
+            and (resolved_path := constants.resolve_path(params.chainIdPath, out)) is not None
+            else None
+        ),
+    )
+
+
+def resolve_amount_parameters(
+    params: InputAmountParameters, constants: ConstantProvider, out: OutputAdder
+) -> ResolvedAmountParameters | None:
     resolved_threshold = None
     if params.threshold is not None:
         threshold = constants.resolve(params.threshold, out)
@@ -227,23 +258,9 @@ def resolve_token_amount_parameters(
                 title="Invalid threshold", message="v2 threshold must be a decimal or hexadecimal uint256 string."
             )
 
-    if (resolved_chain_id := _resolve_chain_id(prefix, params.chainId, constants, out)) is None and (
-        params.chainId is not None
-    ):
-        return None
-
-    return ResolvedTokenAmountParameters(
-        token=token_resolved,
-        nativeCurrencyAddress=resolved_addresses,
+    return ResolvedAmountParameters(
         threshold=resolved_threshold,
         message=constants.resolve_or_none(params.message, out),
-        chainId=resolved_chain_id,
-        chainIdPath=(
-            data_or_container_path_concat(prefix, resolved_path)
-            if params.chainIdPath is not None
-            and (resolved_path := constants.resolve_path(params.chainIdPath, out)) is not None
-            else None
-        ),
     )
 
 

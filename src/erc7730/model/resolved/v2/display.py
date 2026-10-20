@@ -131,7 +131,26 @@ class ResolvedFieldBase(Model):
         return self
 
 
-class ResolvedTokenAmountParameters(Model):
+class ResolvedAmountParameters(Model):
+    """Native amount threshold and message parameters."""
+
+    threshold: HexStr | int | None = Field(
+        default=None,
+        title="Unlimited Threshold",
+        description=(
+            "The resolved threshold at or above which the amount should be displayed using the message parameter "
+            "rather than the real amount (encoded as an int or byte array)."
+        ),
+    )
+
+    message: str | None = Field(
+        default=None,
+        title="Unlimited Message",
+        description="The resolved message to display when the amount is at or above the threshold.",
+    )
+
+
+class ResolvedTokenAmountParameters(ResolvedAmountParameters):
     """
     Token Amount Formatting Parameters (resolved).
     """
@@ -149,21 +168,6 @@ class ResolvedTokenAmountParameters(Model):
         title="Native Currency Address",
         description="An address or array of resolved addresses, any of which are interpreted as an amount in native "
         "currency rather than a token.",
-    )
-
-    threshold: HexStr | int | None = Field(
-        default=None,
-        title="Unlimited Threshold",
-        description=(
-            "The resolved threshold above which the amount should be displayed using the message parameter "
-            "rather than the real amount (encoded as an int or byte array)."
-        ),
-    )
-
-    message: str | None = Field(
-        default=None,
-        title="Unlimited Message",
-        description="The resolved message to display when the amount is above the threshold.",
     )
 
     chainId: int | ResolvedValueMap | None = Field(
@@ -400,6 +404,7 @@ ResolvedFieldParameters = Annotated[
     Annotated[ResolvedAddressNameParameters, Tag("address_name")]
     | Annotated[ResolvedInteroperableAddressNameParameters, Tag("interoperable_address_name")]
     | Annotated[ResolvedCallDataParameters, Tag("call_data")]
+    | Annotated[ResolvedAmountParameters, Tag("amount")]
     | Annotated[ResolvedTokenAmountParameters, Tag("token_amount")]
     | Annotated[ResolvedTokenTickerParameters, Tag("token_ticker")]
     | Annotated[ResolvedNftNameParameters, Tag("nft_name")]
@@ -434,6 +439,7 @@ class ResolvedFieldDefinition(Model):
             FieldFormat.ADDRESS_NAME: ResolvedAddressNameParameters,
             FieldFormat.INTEROPERABLE_ADDRESS_NAME: ResolvedInteroperableAddressNameParameters,
             FieldFormat.CALL_DATA: ResolvedCallDataParameters,
+            FieldFormat.AMOUNT: ResolvedAmountParameters,
             FieldFormat.TOKEN_AMOUNT: ResolvedTokenAmountParameters,
             FieldFormat.TOKEN_TICKER: ResolvedTokenTickerParameters,
             FieldFormat.NFT_NAME: ResolvedNftNameParameters,

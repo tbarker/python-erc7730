@@ -940,6 +940,13 @@ def _convert_v2_param(
             return CalldataDescriptorParamDatetimeV1(value=value, date_type=date_type)
 
         case FieldFormat.AMOUNT:
+            if field.params is not None and any(
+                getattr(field.params, name, None) is not None for name in ("threshold", "message")
+            ):
+                return out.error(
+                    title="Unsupported native amount parameters",
+                    message="Legacy export cannot preserve native amount threshold/message parameters.",
+                )
             return CalldataDescriptorParamAmountV1(value=value)
 
         case FieldFormat.TOKEN_TICKER:
