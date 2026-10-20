@@ -78,11 +78,17 @@ apidoc_module_dir = "../src"
 apidoc_output_dir = "build/reference"
 apidoc_separate_modules = True
 autosummary_generate = True
+# Keep annotation field unions readable instead of expanding Pydantic discriminator metadata.
+autodoc_type_aliases = {
+    "InputField": "erc7730.model.input.v2.display.InputField",
+    "Nodes": "erc7730.generate.natspec.display.fields.Nodes",
+}
 autodoc_pydantic_model_show_json = False
 autodoc_pydantic_model_show_config_summary = False
-autodoc_pydantic_model_validator_members = False
-autodoc_pydantic_model_validator_summary = False
-autodoc_pydantic_model_field_summary = False
+autodoc_pydantic_model_show_validator_members = False
+autodoc_pydantic_model_show_validator_summary = False
+autodoc_pydantic_model_show_field_summary = False
+autodoc_pydantic_field_list_validators = False
 autodoc_pydantic_model_hide_paramlist = True
 autodoc_pydantic_model_hide_reused_validator = True
 html_theme = "sphinxawesome_theme"
