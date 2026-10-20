@@ -217,8 +217,8 @@ Arguments may be positional or fully named: `params=(amount=1500000,to=Alice)`.
 Supply hidden inputs too. Values support raw-unit integers, booleans, quoted strings,
 hex addresses/bytes, aliases, arrays and positional tuples. Repeat tags for multiple cases.
 
-Example execution requires a compatible renderer supplied by the user. The default
-command is `clear-signing-test-runner`; override it with `--example-runner`:
+Example execution requires a compatible renderer supplied explicitly with
+`--example-runner`:
 
 ```shell
 erc7730 natspec --chain-id 1 --address 0x2222222222222222222222222222222222222222 \
@@ -228,8 +228,9 @@ erc7730 lint --v2 --strict calldata-token.json --example-runner 'node /path/to/d
 ```
 
 Both commands discover the config above; compiler paths are relative to that file.
-CLI inputs override config. Inline examples activate testing; supplying a renderer
-also enables automatic cases. Lint needs compiler inputs to rerun authored examples.
+CLI inputs override config. Only `--example-runner` activates testing, including
+automatic cases. Annotations and config alone never launch a renderer. Lint also
+needs compiler inputs to run authored examples.
 
 ```python
 import tomllib

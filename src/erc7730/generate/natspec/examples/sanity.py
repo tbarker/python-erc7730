@@ -196,7 +196,7 @@ def _expected(
             if field.params.nativeCurrencyAddress is not None:
                 return None
             threshold = field.params.threshold
-            if threshold is not None and value > int(str(threshold), 16 if str(threshold).startswith("0x") else 10):
+            if threshold is not None and value >= int(str(threshold), 16 if str(threshold).startswith("0x") else 10):
                 result.append(f"{field.params.message or DEFAULT_UNLIMITED_LABEL} {metadata.symbol}")
             else:
                 result.append(f"{_decimal(value, metadata.decimals)} {metadata.symbol}")

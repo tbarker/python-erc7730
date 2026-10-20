@@ -81,7 +81,8 @@ project_defaults = tomllib.loads(Path("erc7730.toml").read_text())["generate"]
 ```
 
 Generation errors raise `ValueError`; see [lint diagnostics](natspec-and-intent-checks).
-For example execution, pass `example_renderer` and `project_defaults["examples"]`.
+Example execution requires an explicit `example_renderer`; annotations and
+`project_defaults["examples"]` alone do not run a renderer.
 Use `NatSpecExamples(...).run(descriptor)` or `run_natspec_examples(...)` to rerun checks;
 the [example guide](natspec-examples) includes a complete library example.
 

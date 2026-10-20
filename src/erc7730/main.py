@@ -117,8 +117,8 @@ def command_schema(
     name="lint",
     short_help="Validate descriptor files.",
     help="""
-    Validate descriptor files. Supply compiler inputs directly or through project
-    config to run NatSpec examples. Example setup: docs/pages/natspec.md.
+    Validate descriptor files. Supply --example-runner and compiler inputs directly
+    or through project config to run NatSpec examples. Example setup: docs/pages/natspec.md.
     """,
 )
 def command_lint(
@@ -137,9 +137,7 @@ def command_lint(
     userdoc: Annotated[Path | None, Option(help="Split compiler userdoc for example tests")] = None,
     devdoc: Annotated[Path | None, Option(help="Split compiler devdoc for example tests")] = None,
     config: Annotated[Path | None, Option(help="Project config (default: nearest erc7730.toml)")] = None,
-    example_runner: Annotated[
-        str | None, Option(help="Example renderer command (default: clear-signing-test-runner)")
-    ] = None,
+    example_runner: Annotated[str | None, Option(help="Run examples with this renderer command")] = None,
 ) -> None:
     try:
         defaults = (
@@ -154,11 +152,7 @@ def command_lint(
         builtins.print(str(exc), file=sys.stderr)
         raise Exit(1) from exc
     examples = None
-    if (
-        any(path is not None for path in (natspec, userdoc, devdoc))
-        or example_runner is not None
-        or defaults.get("examples") is not None
-    ):
+    if example_runner is not None:
         try:
             examples = NatSpecExamples(
                 natspec=natspec.read_bytes() if natspec else None,
@@ -324,9 +318,7 @@ def command_natspec(
     eip712_domain: Annotated[
         Path | None, Option(help="EIP-712 domain JSON (requires --schema or clearsig-typed-data)")
     ] = None,
-    example_runner: Annotated[
-        str | None, Option(help="Example renderer command (default: clear-signing-test-runner)")
-    ] = None,
+    example_runner: Annotated[str | None, Option(help="Run examples with this renderer command")] = None,
 ) -> None:
     if schema is not None and abi is not None:
         print("Cannot specify both ABI and schema.")

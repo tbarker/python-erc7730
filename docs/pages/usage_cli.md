@@ -82,7 +82,7 @@ Use `--skip-abi-validation` to disable external ABI comparisons against Sourcify
 
 Use `--strict` for published V2 schema, local type and intent checks.
 
-To rerun [NatSpec examples](natspec-examples), supply compiler docs with `--natspec`
+To rerun [NatSpec examples](natspec-examples), pass `--example-runner` and supply compiler docs with `--natspec`
 or select project inputs with `--config erc7730.toml`. `--example-runner COMMAND` selects the renderer.
 Use `--junit-xml PATH` for a [JUnit report](junit-lint-reports):
 

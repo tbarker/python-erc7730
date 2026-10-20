@@ -184,7 +184,7 @@ def run_natspec_examples(
     (the lint default), every displayed function needs an authored example.
     Generation disables this coverage check. Repeated tags (compiler-joined
     with whitespace) produce multiple cases. Example errors raise ValueError;
-    generation calls this automatically when examples are supplied.
+    generation calls this only when a renderer is explicitly supplied.
     `intent` in an example asserts interpolatedIntent when the descriptor declares
     one, otherwise static intent. This function neither submits nor writes files.
     """

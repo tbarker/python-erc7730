@@ -96,7 +96,7 @@ with `ValueError` (CLI exit 1); warnings identify skipped overrides or wording t
 (natspec-example-failures)=
 ## Example failures
 
-Supply compiler docs or example configuration to lint to run [examples](natspec-examples).
+Pass `--example-runner` with compiler docs or example configuration to run [examples](natspec-examples).
 Failed examples stop generation. Unavailable automatic checks are reported as skipped.
 
 (junit-lint-reports)=

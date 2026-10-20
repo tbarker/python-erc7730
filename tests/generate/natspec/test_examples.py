@@ -59,7 +59,7 @@ def artifact() -> dict[str, Any]:
 
 
 def renderer(descriptor: InputERC7730Descriptor, fixture: ExampleFixture) -> dict[str, Any]:
-    """Deterministic runner protocol stub; real runner is exercised separately."""
+    """Deterministic runner protocol stub."""
     cases = []
     for case in fixture.tests:
         transfer = case.description.startswith("transfer(")
@@ -253,7 +253,13 @@ def test_cli_generate_and_lint_run_examples(
     from erc7730.common import client
     from erc7730.model.abi import ABI
 
-    monkeypatch.setattr(CommandExampleRunner, "__call__", lambda self, d, f: renderer(d, f))
+    calls: list[ExampleFixture] = []
+
+    def checked_renderer(self: CommandExampleRunner, d: InputERC7730Descriptor, f: ExampleFixture) -> dict[str, Any]:
+        calls.append(f)
+        return renderer(d, f)
+
+    monkeypatch.setattr(CommandExampleRunner, "__call__", checked_renderer)
     monkeypatch.setattr(
         client, "get_contract_abis", lambda *args: TypeAdapter(list[ABI]).validate_python(artifact["abi"])
     )
@@ -271,10 +277,11 @@ def test_cli_generate_and_lint_run_examples(
     path.write_text(result.stdout)
     result = cli.invoke(app, ["lint", str(path)])
     assert result.exit_code == 0, result.output
+    assert calls == []  # Config and inline tags alone do not launch a renderer.
     artifact["devdoc"]["methods"][TRANSFER]["custom:clearsig-example"] = 'params=(Alice,1500000) intent="Wrong"'
     source.write_text(json.dumps(artifact))
     for args in [["lint", str(path)], ["natspec", "--chain-id", "1", "--address", ADDRESS]]:
-        result = cli.invoke(app, [*args, "--natspec", str(source)])
+        result = cli.invoke(app, [*args, "--natspec", str(source), "--example-runner", "test-renderer"])
         assert result.exit_code == 1, result.output
         assert "Wrong" in result.output
     assert not list(tmp_path.rglob("*.tests.json"))
@@ -363,6 +370,45 @@ def test_missing_examples_generate_but_fail_lint(
     cli = CliRunner()
     generated = cli.invoke(app, ["natspec", "--chain-id", "1", "--address", ADDRESS])
     assert generated.exit_code == 0, generated.output
-    linted = cli.invoke(app, ["lint", str(path), "--config", "erc7730.toml"])
+    linted = cli.invoke(app, ["lint", str(path), "--config", "erc7730.toml", "--example-runner", "test-renderer"])
     assert linted.exit_code == 1
     assert "Missing @custom:clearsig-example" in linted.output
+
+
+def test_generation_never_launches_renderer_implicitly(
+    artifact: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def unexpected(*args: Any, **kwargs: Any) -> None:
+        pytest.fail("Renderer launched without an explicit request")
+
+    monkeypatch.setattr(CommandExampleRunner, "__call__", unexpected)
+    assert generate_natspec_descriptor(1, ADDRESS, natspec=artifact, project_defaults={"examples": CONFIG})
+
+
+@pytest.mark.parametrize("threshold", [1000, "0x3e8"])
+@pytest.mark.parametrize("message", [None, "All"])
+def test_token_threshold_is_inclusive(threshold: int | str, message: str | None) -> None:
+    from erc7730.generate.natspec.examples.models import ExampleConfig
+    from erc7730.generate.natspec.examples.sanity import _expected
+    from erc7730.model.paths.path_parser import to_path
+    from erc7730.model.resolved.v2.display import ResolvedFieldDescription
+
+    field = ResolvedFieldDescription.model_validate(
+        {
+            "path": "#.amount",
+            "label": "Amount",
+            "format": "tokenAmount",
+            "params": {
+                "token": {"type": "path", "path": to_path("#.token")},
+                "threshold": threshold,
+                "message": message,
+            },
+        },
+        strict=False,
+    )
+    expected = message or "Unlimited"
+    assert _expected(field, [999, 1000, 1001], {"token": ADDRESS}, {}, ExampleConfig.model_validate(CONFIG)) == [
+        "0.000999 USDC",
+        f"{expected} USDC",
+        f"{expected} USDC",
+    ]
