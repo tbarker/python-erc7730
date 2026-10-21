@@ -14,6 +14,8 @@ from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 from erc7730.model.resolved.v2.display import ResolvedFieldDescription, ResolvedTokenAmountParameters
 from tests.v2.convert.resolved.test_spec_fixes import ADDRESS, descriptor
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 
 @pytest.mark.parametrize("eip712", [False, True])
 @pytest.mark.parametrize(

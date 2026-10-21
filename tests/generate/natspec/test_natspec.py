@@ -41,6 +41,8 @@ from erc7730.model.input.v2.display import (
 )
 from erc7730.model.input.v2.format import FieldFormat, VisibilityRule
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 DATA = Path(__file__).parent / "data"
 ADDRESS = "0x0000000000000000000000000000000000000001"
 TRANSFER = "transfer(address,uint256)"

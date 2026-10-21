@@ -11,7 +11,8 @@ and `@custom:clearsig-*` supplies explicit display rules.
 `metadata.output`. Artifact ABI is used when `--abi` is omitted. Alternatively, use
 `--userdoc` and `--devdoc`; these conflict with a `--natspec` containing both documents.
 Library arguments accept JSON strings, bytes or dictionaries. Inheritance must already
-be resolved in compiler docs.
+be resolved in compiler docs. Calldata generation requires a supplied ABI or artifact;
+it never fetches missing ABIs.
 
 ```shell
 forge build --extra-output userdoc --extra-output devdoc

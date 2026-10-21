@@ -10,7 +10,6 @@ from pydantic import TypeAdapter
 from pydantic_string_url import HttpUrl
 
 from erc7730.common.abi import ABIDataType, compute_signature, get_functions
-from erc7730.common.client import get_contract_abis
 from erc7730.common.schema_types import validate_function_declaration
 from erc7730.generate.natspec import JSONInput, parse_natspec
 from erc7730.generate.natspec.display import apply_natspec
@@ -77,8 +76,8 @@ def generate_natspec_descriptor(
     Generate an ERC-7730 v2 descriptor, including supported NatSpec intent templates.
 
     An explicit EIP-712 schema or method-level clearsig-typed-data annotations select message generation.
-    The bridge requires a supplied compiler ABI; otherwise unannotated generation builds a calldata descriptor
-    and can fetch missing ABIs from Sourcify or Etherscan using the chain id / contract address.
+    Calldata generation and the typed-data bridge require a supplied ABI or compiler artifact.
+    Generation never fetches an ABI from a remote service.
 
     :param chain_id: contract chain id
     :param contract_address: contract address
@@ -251,11 +250,9 @@ def _generate_context_eip712(
 def _generate_context_calldata(
     chain_id: int, contract_address: Address, abi: str | bytes | None
 ) -> tuple[InputContractContext, dict[str, SchemaTree]]:
-    if abi is not None:
-        abis = TypeAdapter(list[ABI]).validate_json(abi)
-
-    else:
-        abis = get_contract_abis(chain_id, contract_address)
+    if abi is None:
+        raise ValueError("NatSpec calldata generation requires an ABI or a compiler artifact containing an ABI.")
+    abis = TypeAdapter(list[ABI]).validate_json(abi)
 
     functions = [
         name_unnamed_inputs(function) for function in get_functions(abis, include_read_only=True).functions.values()

@@ -46,3 +46,13 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 @pytest.fixture
 def skip_abi_validation(request: pytest.FixtureRequest) -> bool:
     return bool(request.config.getoption("--skip-abi-validation"))
+
+
+@pytest.fixture
+def local_explorer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Supply explorer labels for descriptor tests using local reference ABIs."""
+    from erc7730.common import client
+
+    monkeypatch.setattr(
+        client, "get_contract_explorer_url", lambda chain_id, address: f"https://explorer.invalid/{chain_id}/{address}"
+    )

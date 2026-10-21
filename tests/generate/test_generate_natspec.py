@@ -9,27 +9,13 @@ from erc7730.model.input.v2.context import InputContractContext
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 from erc7730.model.input.v2.display import InputFieldDescription, InputFieldGroup
 from erc7730.model.paths import Array, DataPath, Field
-from erc7730.model.types import Address
 
 DATA = Path(__file__).resolve().parent / "data"
 
 
-@pytest.mark.parametrize(
-    "label,chain_id,contract_address",
-    [
-        ("Tether USD", 42161, "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"),
-        ("POAP Bridge", 1, "0x0bb4d3e88243f4a057db77341e6916b0e449b158"),
-        ("QuickSwap", 137, "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff"),
-        ("1inch Aggregation router v5", 10, "0x1111111254EEB25477B68fb85Ed929f73A960582"),
-        ("Paraswap v5 AugustusSwapper", 10, "0xDEF171Fe48CF0115B1d80b88dc8eAB59176FEe57"),
-        ("Uniswap v3 Router 2", 8453, "0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"),
-    ],
-)
-def test_generate_from_contract_address(label: str, chain_id: int, contract_address: Address) -> None:
-    """Generate descriptor using a provided ABI file."""
-    _assert_descriptor_valid(
-        generate_natspec_descriptor(chain_id=chain_id, contract_address=contract_address, owner=label)
-    )
+def test_missing_abi_is_rejected() -> None:
+    with pytest.raises(ValueError, match="requires an ABI or a compiler artifact"):
+        generate_natspec_descriptor(1, "0x1111111111111111111111111111111111111111")
 
 
 @pytest.mark.parametrize("test_file", sorted(glob(str(DATA / "abis*.json"))), ids=lambda f: Path(f).stem)
@@ -169,3 +155,13 @@ def _assert_descriptor_valid(descriptor: InputERC7730Descriptor) -> None:
     assert len(deployments) == 1
     assert len(descriptor.display.formats) > 0
     assert InputERC7730Descriptor.model_validate_json(descriptor.to_json_string()) == descriptor
+
+
+def test_cli_missing_abi_is_rejected() -> None:
+    from typer.testing import CliRunner
+
+    from erc7730.main import app
+
+    result = CliRunner().invoke(app, ["natspec", "--chain-id", "1", "--address", "0x" + "11" * 20])
+    assert result.exit_code == 1
+    assert "requires an ABI or a compiler artifact" in result.output

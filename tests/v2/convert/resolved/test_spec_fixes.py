@@ -11,6 +11,8 @@ from erc7730.lint.v2.lint_validate_schema import ValidateSchemaLinter
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 from erc7730.model.resolved.v2.display import ResolvedFieldDescription, ResolvedFieldGroup
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 ADDRESS = "0x1111111111111111111111111111111111111111"
 
 

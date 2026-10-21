@@ -5,8 +5,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from pydantic import TypeAdapter
 
+from erc7730.common import client
 from erc7730.generate.natspec.generate import generate_natspec_descriptor
+from erc7730.model.abi import ABI as ABI_MODEL
+
+pytestmark = pytest.mark.usefixtures("local_explorer")
 
 ADDRESS = "0x1111111111111111111111111111111111111111"
 ABI = '[{"type":"function","name":"f","inputs":[{"name":"x","type":"uint256"},{"name":"to","type":"address"}]}]'
@@ -156,12 +161,14 @@ def test_complete_calldata_parameters_use_existing_model() -> None:
     }
 
 
-def test_compiled_visibility_cli_and_library(tmp_path: Path) -> None:
+def test_compiled_visibility_cli_and_library(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from typer.testing import CliRunner
 
     from erc7730.main import app
 
     source = Path(__file__).parent / "data/upstream_examples/example-visibility-rules.artifact.json"
+    abis = TypeAdapter(list[ABI_MODEL]).validate_python(json.loads(source.read_text())["abi"], strict=False)
+    monkeypatch.setattr(client, "get_contract_abis", lambda *args: abis)
     descriptor = generate_natspec_descriptor(1, ADDRESS, natspec=source.read_text())
     runner = CliRunner()
     result = runner.invoke(app, ["natspec", "--chain-id", "1", "--address", ADDRESS, "--natspec", str(source)])

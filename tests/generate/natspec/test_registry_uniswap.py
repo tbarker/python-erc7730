@@ -14,6 +14,8 @@ from erc7730.lint.v2.lint import lint_all
 from erc7730.model.abi import ABI
 from tests.generate.natspec.registry_uniswap import DATA, MANIFEST, NAMES, assemble, comparison, expected
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 
 @pytest.mark.parametrize("name", NAMES)
 def test_official_uniswap_roundtrip(name: str) -> None:

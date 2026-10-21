@@ -31,6 +31,8 @@ from erc7730.main import app
 from erc7730.model.abi import ABI
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 DATA = Path(__file__).parent / "data"
 ADDRESS = "0x0000000000000000000000000000000000000001"
 SETTLE = "settle((address maker,uint256 amount,uint256 deadline) order,uint256 nonce)"
@@ -40,7 +42,7 @@ SETTLE = "settle((address maker,uint256 amount,uint256 deadline) order,uint256 n
 def test_complex_natspec_through_lint(entrypoint: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     artifact_bytes = (DATA / "natspec_complex_artifact.json").read_bytes()
     artifact = json.loads(artifact_bytes)
-    # Only the external reference-ABI fetch is replaced. Parsing, overlay, model
+    # The reference ABI is local; explorer labels are local. Parsing, overlay, model
     # serialization, published schema validation and all descriptor linters run.
     abis = TypeAdapter(list[ABI]).validate_python(artifact["abi"], strict=False)
     monkeypatch.setattr(client, "get_contract_abis", lambda *args: abis)

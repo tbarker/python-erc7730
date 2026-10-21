@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Any
 
 import pytest
 from typer.testing import CliRunner
@@ -41,10 +40,6 @@ def test_eip712_generation_domain_library_and_cli(tmp_path: Path) -> None:
     assert InputERC7730Descriptor.model_validate_json(result.stdout) == d
 
 
-def test_domain_requires_schema_without_fetching_abi(monkeypatch: pytest.MonkeyPatch) -> None:
-    def unexpected_fetch(*args: Any) -> Any:
-        pytest.fail("Invalid domain options should not trigger ABI fetching")
-
-    monkeypatch.setattr("erc7730.generate.natspec.generate.get_contract_abis", unexpected_fetch)
+def test_domain_requires_schema_without_fetching_abi() -> None:
     with pytest.raises(ValueError, match="eip712_domain requires"):
         generate_natspec_descriptor(1, ADDRESS, eip712_domain={"name": "Example"})

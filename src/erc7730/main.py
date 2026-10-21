@@ -299,7 +299,7 @@ def command_generate(
     short_help="Create a V2 descriptor from ABI/schema and NatSpec.",
     help="""
     Generate a V2 descriptor as JSON on stdout from an ABI or EIP-712 schema.
-    For calldata, missing ABIs are fetched from Sourcify/Etherscan.
+    For calldata, supply --abi or a compiler artifact containing an ABI.
 
     Annotation syntax and examples: docs/pages/natspec.md.
     """,

@@ -4,21 +4,28 @@ import json
 from pathlib import Path
 
 import pytest
+from pydantic import TypeAdapter
 from typer.testing import CliRunner
 
+from erc7730.common import client
 from erc7730.common.output import ListOutputAdder
 from erc7730.convert.resolved.v2.convert_erc7730_input_to_resolved import ERC7730InputToResolved
 from erc7730.generate.natspec.generate import generate_natspec_descriptor
 from erc7730.lint.v2.lint_validate_intent import ValidateIntentLinter
 from erc7730.lint.v2.lint_validate_schema import ValidateSchemaLinter
 from erc7730.main import app
+from erc7730.model.abi import ABI
 from erc7730.model.input.v2.display import InputFieldGroup
+
+pytestmark = pytest.mark.usefixtures("local_explorer")
 
 SOURCE = Path(__file__).parent / "data/container-fields.artifact.json"
 ADDRESS = "0x1111111111111111111111111111111111111111"
 
 
-def test_compiler_container_fields_cli_library_lint(tmp_path: Path) -> None:
+def test_compiler_container_fields_cli_library_lint(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    abis = TypeAdapter(list[ABI]).validate_python(json.loads(SOURCE.read_text())["abi"], strict=False)
+    monkeypatch.setattr(client, "get_contract_abis", lambda *args: abis)
     descriptor = generate_natspec_descriptor(1, ADDRESS, natspec=SOURCE.read_text())
     fields = descriptor.display.formats["send(address recipient)"].fields
     assert [str(field.path) for field in fields] == ["@.value", "#.recipient"]

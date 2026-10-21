@@ -9,6 +9,8 @@ import pytest
 
 from tests.generate.natspec.upstream_examples import DATA, MANIFEST, assemble, expected_document, semantic
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 
 @pytest.mark.parametrize("name", sorted(MANIFEST["examples"]))
 def test_upstream_bundle_roundtrip(name: str) -> None:

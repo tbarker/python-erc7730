@@ -15,6 +15,8 @@ from erc7730.main import app
 from erc7730.model.abi import ABI
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 DATA = Path(__file__).parent / "data"
 ADDRESS = "0x0000000000000000000000000000000000000001"
 SIGNATURE = "transfer(address,uint256)"
@@ -292,7 +294,11 @@ def test_explicit_template_uses_descriptor_path_vocabulary(artifact: dict[str, A
     assert result.display.formats["transfer(address to,uint256 amount)"].interpolatedIntent == text
 
 
-def test_explicit_missing_reference_is_lint_error(artifact: dict[str, Any], tmp_path: Path) -> None:
+def test_explicit_missing_reference_is_lint_error(
+    artifact: dict[str, Any], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    abis = TypeAdapter(list[ABI]).validate_python(artifact["abi"], strict=False)
+    monkeypatch.setattr(client, "get_contract_abis", lambda *args: abis)
     artifact["devdoc"]["methods"][SIGNATURE]["custom:clearsig-interpolated-intent"] = "Send {missing}"
     path = tmp_path / "calldata-test.json"
     path.write_text(generate(artifact).to_json_string())
@@ -397,7 +403,11 @@ def test_notice_computations_remain_unsupported(artifact: dict[str, Any], expres
         generate(artifact)
 
 
-def test_notice_container_reference_requires_formatter_in_lint(artifact: dict[str, Any], tmp_path: Path) -> None:
+def test_notice_container_reference_requires_formatter_in_lint(
+    artifact: dict[str, Any], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    abis = TypeAdapter(list[ABI]).validate_python(artifact["abi"], strict=False)
+    monkeypatch.setattr(client, "get_contract_abis", lambda *args: abis)
     artifact["userdoc"]["methods"][SIGNATURE]["notice"] = "Send `@.value`"
     path = tmp_path / "calldata-container.json"
     path.write_text(generate(artifact).to_json_string())

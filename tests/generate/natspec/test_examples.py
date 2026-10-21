@@ -30,6 +30,8 @@ from erc7730.lint.v2.lint import lint_all
 from erc7730.main import app
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
 
+pytestmark = pytest.mark.usefixtures("local_explorer")
+
 DATA = Path(__file__).parent / "data"
 ADDRESS = "0x2222222222222222222222222222222222222222"
 ALICE = "0x1111111111111111111111111111111111111111"
