@@ -45,6 +45,7 @@ from erc7730.model.resolved.v2.display import (
     ResolvedFieldGroup,
     ResolvedTokenAmountParameters,
     ResolvedValueMap,
+    ResolvedVisibilityConditions,
 )
 
 # ---------------------------------------------------------------------------
@@ -167,6 +168,20 @@ def _convert_v2_field(
         if field.visible == "never":
             return []
 
+        if field.encryption is not None or (
+            isinstance(field.visible, ResolvedVisibilityConditions) and field.visible.mustMatch is not None
+        ):
+            return out.error(
+                title="Unsupported V2 display restriction",
+                message=f"Legacy EIP-712 export cannot preserve encryption or mustMatch constraints for {field.path}.",
+            )
+
+        if isinstance(field.visible, ResolvedVisibilityConditions) and field.visible.ifNotIn is not None:
+            out.warning(
+                title="Conditional visibility omitted",
+                message=f"Legacy EIP-712 export displays {field.path} unconditionally; ifNotIn is not supported.",
+            )
+
         if (output_field := _convert_v2_field_description(field, out)) is None:
             return None
         return [output_field]
@@ -260,6 +275,13 @@ def _convert_v2_field_description(
         case FieldFormat.DATE:
             field_format = EIP712Format.DATETIME
         case FieldFormat.AMOUNT:
+            if field.params is not None and any(
+                getattr(field.params, name, None) is not None for name in ("threshold", "message")
+            ):
+                return out.error(
+                    title="Unsupported native amount parameters",
+                    message="Legacy export cannot preserve native amount threshold/message parameters.",
+                )
             field_format = EIP712Format.AMOUNT
         case FieldFormat.TOKEN_AMOUNT:
             field_format = EIP712Format.AMOUNT
@@ -405,28 +427,14 @@ def _convert_trusted_names_sources(
         return None
     name_sources: list[EIP712NameSource] = []
 
-    if names is not None:
-        for name in names:
-            match name:
-                case EIP712NameType.EOA | EIP712NameType.WALLET | EIP712NameType.COLLECTION:
-                    name_sources.append(EIP712NameSource.ENS)
-                    name_sources.append(EIP712NameSource.UNSTOPPABLE_DOMAIN)
-                    name_sources.append(EIP712NameSource.FREENAME)
-                case EIP712NameType.SMART_CONTRACT | EIP712NameType.TOKEN:
-                    name_sources.append(EIP712NameSource.CRYPTO_ASSET_LIST)
-                case EIP712NameType.CONTEXT_ADDRESS:
-                    name_sources.append(EIP712NameSource.DYNAMIC_RESOLVER)
-                case _:
-                    pass
+    for source in sources:
+        try:
+            converted = EIP712NameSource.LOCAL_ADDRESS_BOOK if source == "local" else EIP712NameSource(source)
+        except ValueError as exc:
+            raise ValueError(f"Legacy EIP-712 export cannot preserve address-name source {source!r}") from exc
+        if converted not in name_sources:
+            name_sources.append(converted)
 
-    for name_source in sources:
-        if name_source == "local":
-            name_sources.append(EIP712NameSource.LOCAL_ADDRESS_BOOK)
-        elif name_source in set(EIP712NameSource) and name_source not in name_sources:
-            name_sources.append(EIP712NameSource(name_source))
-
-    if not name_sources:
-        name_sources = list(EIP712NameSource)
     return name_sources
 
 

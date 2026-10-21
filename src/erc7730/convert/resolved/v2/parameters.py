@@ -2,6 +2,7 @@ from typing import Any, assert_never, cast
 
 from erc7730.common.abi import ABIDataType
 from erc7730.common.output import OutputAdder
+from erc7730.convert.resolved.address_names import resolve_name_lists
 from erc7730.convert.resolved.v2.constants import ConstantProvider
 from erc7730.convert.resolved.v2.enums import get_enum, get_enum_id
 from erc7730.convert.resolved.v2.values import (
@@ -11,6 +12,7 @@ from erc7730.convert.resolved.v2.values import (
 from erc7730.model.input.path import DescriptorPathStr
 from erc7730.model.input.v2.display import (
     InputAddressNameParameters,
+    InputAmountParameters,
     InputCallDataParameters,
     InputDateParameters,
     InputEncryptionParameters,
@@ -29,6 +31,7 @@ from erc7730.model.resolved.display import ResolvedValueConstant
 from erc7730.model.resolved.metadata import EnumDefinition
 from erc7730.model.resolved.v2.display import (
     ResolvedAddressNameParameters,
+    ResolvedAmountParameters,
     ResolvedCallDataParameters,
     ResolvedDateParameters,
     ResolvedEncryptionParameters,
@@ -42,7 +45,7 @@ from erc7730.model.resolved.v2.display import (
     ResolvedValueMap,
     ResolvedValueOrMap,
 )
-from erc7730.model.types import Address, HexStr, Id, MixedCaseAddress, ScalarType
+from erc7730.model.types import Address, Id, MixedCaseAddress, ScalarType
 
 
 def resolve_field_parameters(
@@ -63,6 +66,8 @@ def resolve_field_parameters(
             return resolve_calldata_parameters(prefix, params, constants, out)
         case InputTokenAmountParameters():
             return resolve_token_amount_parameters(prefix, params, constants, out)
+        case InputAmountParameters():
+            return resolve_amount_parameters(params, constants, out)
         case InputTokenTickerParameters():
             return resolve_token_ticker_parameters(prefix, params, constants, out)
         case InputNftNameParameters():
@@ -84,11 +89,11 @@ def resolve_address_name_parameters(
     if params.senderAddress is not None and sender_address is None:
         return None
 
-    return ResolvedAddressNameParameters(
-        types=constants.resolve_or_none(params.types, out),
-        sources=constants.resolve_or_none(params.sources, out),
-        senderAddress=sender_address,
-    )
+    if (
+        names := resolve_name_lists(params.types, params.sources, lambda value: constants.resolve(value, out), out)
+    ) is None:
+        return None
+    return ResolvedAddressNameParameters.model_validate({"senderAddress": sender_address, **names}, strict=False)
 
 
 def resolve_interoperable_address_name_parameters(
@@ -98,10 +103,12 @@ def resolve_interoperable_address_name_parameters(
     if params.senderAddress is not None and sender_address is None:
         return None
 
-    return ResolvedInteroperableAddressNameParameters(
-        types=constants.resolve_or_none(params.types, out),
-        sources=constants.resolve_or_none(params.sources, out),
-        senderAddress=sender_address,
+    if (
+        names := resolve_name_lists(params.types, params.sources, lambda value: constants.resolve(value, out), out)
+    ) is None:
+        return None
+    return ResolvedInteroperableAddressNameParameters.model_validate(
+        {"senderAddress": sender_address, **names}, strict=False
     )
 
 
@@ -205,15 +212,9 @@ def resolve_token_amount_parameters(
     else:
         raise Exception("Invalid nativeCurrencyAddress type")
 
-    input_threshold = cast(HexStr | int | None, constants.resolve_or_none(params.threshold, out))
-    resolved_threshold: HexStr | None
-    if input_threshold is not None:
-        if isinstance(input_threshold, int):
-            resolved_threshold = "0x" + input_threshold.to_bytes(byteorder="big", signed=False).hex()
-        else:
-            resolved_threshold = input_threshold
-    else:
-        resolved_threshold = None
+    amount = resolve_amount_parameters(params, constants, out)
+    if amount is None:
+        return None
 
     if (resolved_chain_id := _resolve_chain_id(prefix, params.chainId, constants, out)) is None and (
         params.chainId is not None
@@ -223,10 +224,43 @@ def resolve_token_amount_parameters(
     return ResolvedTokenAmountParameters(
         token=token_resolved,
         nativeCurrencyAddress=resolved_addresses,
+        threshold=amount.threshold,
+        message=amount.message,
+        chainId=resolved_chain_id,
+        chainIdPath=(
+            data_or_container_path_concat(prefix, resolved_path)
+            if params.chainIdPath is not None
+            and (resolved_path := constants.resolve_path(params.chainIdPath, out)) is not None
+            else None
+        ),
+    )
+
+
+def resolve_amount_parameters(
+    params: InputAmountParameters, constants: ConstantProvider, out: OutputAdder
+) -> ResolvedAmountParameters | None:
+    resolved_threshold = None
+    if params.threshold is not None:
+        threshold = constants.resolve(params.threshold, out)
+        if not isinstance(threshold, str | int) or isinstance(threshold, bool):
+            return out.error(
+                title="Invalid threshold", message="Threshold must resolve to an integer or numeric string."
+            )
+        try:
+            value = (
+                threshold if isinstance(threshold, int) else int(threshold, 16 if threshold.startswith("0x") else 10)
+            )
+            if value < 0 or value.bit_length() > 256:
+                raise ValueError("outside uint256 range")
+            resolved_threshold = "0x" + value.to_bytes(max(1, (value.bit_length() + 7) // 8), "big").hex()
+        except ValueError:
+            return out.error(
+                title="Invalid threshold", message="v2 threshold must be a decimal or hexadecimal uint256 string."
+            )
+
+    return ResolvedAmountParameters(
         threshold=resolved_threshold,
         message=constants.resolve_or_none(params.message, out),
-        chainId=resolved_chain_id,
-        chainIdPath=params.chainIdPath,
     )
 
 
@@ -261,25 +295,21 @@ def _resolve_chain_id(
         return None
 
     if isinstance(chain_id_input, InputMapReference):
-        match resolved_map := resolve_map_reference_value(prefix, chain_id_input, ABIDataType.UINT, constants, out):
-            case ResolvedValueConstant():
-                if not isinstance(resolved_map.value, int):
-                    return out.error(
-                        title="Invalid chain id",
-                        message=f"""Chain id "{resolved_map.value}" from map {chain_id_input.map} is not an integer.""",
-                    )
-                return resolved_map.value
-            case _:
-                return resolved_map
+        resolved_map = resolve_map_reference_value(prefix, chain_id_input, ABIDataType.UINT, constants, out)
+        values = resolved_map.values.values() if isinstance(resolved_map, ResolvedValueMap) else [resolved_map]
+        if any(
+            value is not None and (not isinstance(value.value, int) or isinstance(value.value, bool))
+            for value in values
+        ):
+            return out.error(title="Invalid chain id", message="chainId map values must be integers.")
+        return cast(int, resolved_map.value) if isinstance(resolved_map, ResolvedValueConstant) else resolved_map
 
     if isinstance(chain_id_input, int):
         return chain_id_input
 
     # Descriptor path
     resolved_value: Any = constants.resolve(chain_id_input, out)
-    if resolved_value is None:
-        return None
-    if not isinstance(resolved_value, int):
+    if not isinstance(resolved_value, int) or isinstance(resolved_value, bool):
         return out.error(
             title="Invalid chain id",
             message=f"""Chain id "{resolved_value}" from {chain_id_input} is not an integer.""",

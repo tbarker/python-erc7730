@@ -1,0 +1,51 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "ca14d83a8f17fdbe7ab5ccfd29886dee24b66f83c96735232d44f5adaea399ca",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "approve",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "kind": "dev",
+    "methods": {
+      "approve(address,uint256)": {
+        "custom:clearsig-format": "spender=addressName value=tokenAmount",
+        "custom:clearsig-intent": "Approve",
+        "custom:clearsig-threshold": "value=\"0xFFFFFFFFFFFFFFFFFF\"",
+        "custom:clearsig-token-path": "value=@.to",
+        "params": {
+          "spender": "Spender",
+          "value": "Amount"
+        }
+      }
+    },
+    "title": "MyToken",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "approve(address,uint256)": {
+        "notice": "Approve `spender` to spend `value`"
+      }
+    },
+    "version": 1
+  }
+}

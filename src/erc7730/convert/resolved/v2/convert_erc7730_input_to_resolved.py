@@ -248,6 +248,7 @@ class ERC7730InputToResolved(ERC7730Converter[InputERC7730Descriptor, ResolvedER
             chainId=domain.chainId,
             verifyingContract=None if domain.verifyingContract is None else Address(domain.verifyingContract),
             salt=domain.salt,
+            **(domain.model_extra or {}),
         )
 
     @classmethod
@@ -345,17 +346,11 @@ class ERC7730InputToResolved(ERC7730Converter[InputERC7730Descriptor, ResolvedER
                 | FieldFormat.TOKEN_AMOUNT
                 | FieldFormat.TOKEN_TICKER
                 | FieldFormat.DURATION
+                | FieldFormat.ADDRESS_NAME
+                | FieldFormat.INTEROPERABLE_ADDRESS_NAME
             ):
                 pass
-            case (
-                FieldFormat.ADDRESS_NAME
-                | FieldFormat.INTEROPERABLE_ADDRESS_NAME
-                | FieldFormat.CALL_DATA
-                | FieldFormat.NFT_NAME
-                | FieldFormat.DATE
-                | FieldFormat.UNIT
-                | FieldFormat.ENUM
-            ):
+            case FieldFormat.CALL_DATA | FieldFormat.NFT_NAME | FieldFormat.DATE | FieldFormat.UNIT | FieldFormat.ENUM:
                 if definition.params is None:
                     return out.error(
                         title="Missing parameters",
@@ -367,6 +362,10 @@ class ERC7730InputToResolved(ERC7730Converter[InputERC7730Descriptor, ResolvedER
             case _:
                 assert_never(definition.format)
 
+        # Revalidate model_copy/reference results as well as parsed JSON.
+        definition = InputFieldDescription.model_validate(
+            definition.model_dump(by_alias=True, exclude_none=True), strict=False
+        )
         params = resolve_field_parameters(prefix, definition.params, enums, constants, out)
         if definition.params is not None and params is None:
             # parameters are set but could not be resolved (error already reported): dropping them would display the
@@ -593,14 +592,9 @@ class ERC7730InputToResolved(ERC7730Converter[InputERC7730Descriptor, ResolvedER
             return None
 
         match path.elements[-1]:
-            case Field() | ArrayElement():
+            case Field() | ArrayElement() if group.label is None and group.iteration is None:
                 return resolved_fields
-            case ArraySlice():
-                return out.error(
-                    title="Invalid field group",
-                    message="Using field groups on an array slice is not allowed.",
-                )
-            case Array():
+            case Field() | ArrayElement() | Array() | ArraySlice():
                 return [
                     ResolvedFieldGroup.model_validate(
                         {

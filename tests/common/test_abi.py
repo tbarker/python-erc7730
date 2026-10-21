@@ -15,6 +15,7 @@ from erc7730.model.abi import Component, Function, InputOutput
         ("transfer()", "transfer()"),
         # one param, no space
         ("transfer(address)", "transfer(address)"),
+        ("transfer(\n\taddress recipient\n)", "transfer(address)"),
         # multiple params, expected spaces, no names
         ("mintToken(uint256, uint256, address, uint256, bytes)", "mintToken(uint256,uint256,address,uint256,bytes)"),
         # multiple params, expected spaces, names

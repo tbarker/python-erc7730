@@ -1,0 +1,320 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "a2b1e3556fe4f449fc3d8a1dc629df86f88024f5109cf1cd7d1048da6d5e0cee",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "path",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOutMinimum",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct UniswapCalldataUniswapv3Router02.ExactInputParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactInput",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "tokenIn",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "tokenOut",
+              "type": "address"
+            },
+            {
+              "internalType": "uint24",
+              "name": "fee",
+              "type": "uint24"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountIn",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOutMinimum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint160",
+              "name": "sqrtPriceLimitX96",
+              "type": "uint160"
+            }
+          ],
+          "internalType": "struct UniswapCalldataUniswapv3Router02.ExactInputSingleParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactInputSingle",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "bytes",
+              "name": "path",
+              "type": "bytes"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOut",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountInMaximum",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct UniswapCalldataUniswapv3Router02.ExactOutputParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactOutput",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "tokenIn",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "tokenOut",
+              "type": "address"
+            },
+            {
+              "internalType": "uint24",
+              "name": "fee",
+              "type": "uint24"
+            },
+            {
+              "internalType": "address",
+              "name": "recipient",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountOut",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amountInMaximum",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint160",
+              "name": "sqrtPriceLimitX96",
+              "type": "uint160"
+            }
+          ],
+          "internalType": "struct UniswapCalldataUniswapv3Router02.ExactOutputSingleParams",
+          "name": "params",
+          "type": "tuple"
+        }
+      ],
+      "name": "exactOutputSingle",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountIn",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountOutMin",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address[]",
+          "name": "path",
+          "type": "address[]"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "swapExactTokensForTokens",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountOut",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amountInMax",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address[]",
+          "name": "path",
+          "type": "address[]"
+        },
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "name": "swapTokensForExactTokens",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "custom:clearsig-owner": "Uniswap Labs",
+    "kind": "dev",
+    "methods": {
+      "exactInput((bytes,address,uint256,uint256))": {
+        "custom:clearsig-exclude": "params.path",
+        "custom:clearsig-format": "params.amountIn=tokenAmount params.amountOutMinimum=tokenAmount params.recipient=addressName",
+        "custom:clearsig-label": "params.amountIn=Amount to Send params.amountOutMinimum=Minimum to Receive params.recipient=Beneficiary",
+        "custom:clearsig-token-path": "params.amountIn=#.params.path.[0:20] params.amountOutMinimum=#.params.path.[-20:]",
+        "custom:clearsig-types": "params.recipient=[\"eoa\",\"contract\"]"
+      },
+      "exactInputSingle((address,address,uint24,address,uint256,uint256,uint160))": {
+        "custom:clearsig-base": "params.fee=%",
+        "custom:clearsig-decimals": "params.fee=4",
+        "custom:clearsig-exclude": "params.tokenIn,params.tokenOut,params.sqrtPriceLimitX96",
+        "custom:clearsig-format": "params.amountIn=tokenAmount params.amountOutMinimum=tokenAmount params.fee=unit params.recipient=addressName",
+        "custom:clearsig-label": "params.amountIn=Send params.amountOutMinimum=Minimum to Receive params.fee=Uniswap fee params.recipient=Beneficiary",
+        "custom:clearsig-prefix": "params.fee=false",
+        "custom:clearsig-token-path": "params.amountIn=#.params.tokenIn params.amountOutMinimum=#.params.tokenOut",
+        "custom:clearsig-types": "params.recipient=[\"eoa\",\"contract\"]"
+      },
+      "exactOutput((bytes,address,uint256,uint256))": {
+        "custom:clearsig-exclude": "params.path",
+        "custom:clearsig-format": "params.amountInMaximum=tokenAmount params.amountOut=tokenAmount params.recipient=addressName",
+        "custom:clearsig-label": "params.amountInMaximum=Maximum Amount In params.amountOut=Amount to Receive params.recipient=Beneficiary",
+        "custom:clearsig-token-path": "params.amountInMaximum=#.params.path.[-20:] params.amountOut=#.params.path.[0:20]",
+        "custom:clearsig-types": "params.recipient=[\"eoa\",\"contract\"]"
+      },
+      "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint160))": {
+        "custom:clearsig-base": "params.fee=%",
+        "custom:clearsig-decimals": "params.fee=4",
+        "custom:clearsig-exclude": "params.tokenIn,params.tokenOut,params.sqrtPriceLimitX96",
+        "custom:clearsig-format": "params.amountInMaximum=tokenAmount params.amountOut=tokenAmount params.fee=unit params.recipient=addressName",
+        "custom:clearsig-label": "params.amountInMaximum=Maximum Amount In params.amountOut=Amount to Receive params.fee=Uniswap fee params.recipient=Beneficiary",
+        "custom:clearsig-prefix": "params.fee=false",
+        "custom:clearsig-token-path": "params.amountInMaximum=#.params.tokenIn params.amountOut=#.params.tokenOut",
+        "custom:clearsig-types": "params.recipient=[\"eoa\",\"contract\"]"
+      },
+      "swapExactTokensForTokens(uint256,uint256,address[],address)": {
+        "custom:clearsig-exclude": "path",
+        "custom:clearsig-format": "amountIn=tokenAmount amountOutMin=tokenAmount to=addressName",
+        "custom:clearsig-token-path": "amountIn=#.path.[0] amountOutMin=#.path.[-1]",
+        "custom:clearsig-types": "to=[\"eoa\",\"contract\"]",
+        "params": {
+          "amountIn": "Amount to Send",
+          "amountOutMin": "Minimum to Receive",
+          "to": "Recipient"
+        }
+      },
+      "swapTokensForExactTokens(uint256,uint256,address[],address)": {
+        "custom:clearsig-exclude": "path",
+        "custom:clearsig-format": "amountOut=tokenAmount amountInMax=tokenAmount to=addressName",
+        "custom:clearsig-sender-address": "to=[\"0x0000000000000000000000000000000000000001\"]",
+        "custom:clearsig-token-path": "amountOut=#.path.[-1] amountInMax=#.path.[0]",
+        "custom:clearsig-types": "to=[\"eoa\",\"contract\"]",
+        "params": {
+          "amountInMax": "Maximum to Send",
+          "amountOut": "Amount to Receive",
+          "to": "Recipient"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "exactInput((bytes,address,uint256,uint256))": {
+        "notice": "Swap"
+      },
+      "exactInputSingle((address,address,uint24,address,uint256,uint256,uint160))": {
+        "notice": "swap"
+      },
+      "exactOutput((bytes,address,uint256,uint256))": {
+        "notice": "Swap"
+      },
+      "exactOutputSingle((address,address,uint24,address,uint256,uint256,uint160))": {
+        "notice": "Swap"
+      },
+      "swapExactTokensForTokens(uint256,uint256,address[],address)": {
+        "notice": "Swap"
+      },
+      "swapTokensForExactTokens(uint256,uint256,address[],address)": {
+        "notice": "Swap"
+      }
+    },
+    "version": 1
+  }
+}

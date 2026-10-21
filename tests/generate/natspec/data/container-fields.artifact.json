@@ -1,0 +1,55 @@
+{
+  "abi": [
+    {
+      "inputs": [],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        }
+      ],
+      "name": "send",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "kind": "dev",
+    "methods": {
+      "deposit()": {
+        "custom:clearsig-format": "@.value=amount",
+        "custom:clearsig-label": "@.value=Deposit"
+      },
+      "send(address)": {
+        "custom:clearsig-format": "@.value=amount recipient=addressName",
+        "custom:clearsig-intent": "Send native currency",
+        "custom:clearsig-label": "@.value=Amount",
+        "params": {
+          "recipient": "Recipient"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "deposit()": {
+        "notice": "Deposit"
+      },
+      "send(address)": {
+        "notice": "Send `@.value` to `recipient`"
+      }
+    },
+    "version": 1
+  }
+}

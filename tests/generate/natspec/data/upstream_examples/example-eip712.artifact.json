@@ -1,0 +1,137 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "7f6b39068ca6f677c614bbd63a92b2489430de2baf6243d7e81e8e6d989b1d4f",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint160",
+              "name": "amount",
+              "type": "uint160"
+            },
+            {
+              "internalType": "uint48",
+              "name": "expiration",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "nonce",
+              "type": "uint48"
+            }
+          ],
+          "internalType": "struct ExampleEip712.PermitDetails[]",
+          "name": "details",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sigDeadline",
+          "type": "uint256"
+        }
+      ],
+      "name": "PermitBatch",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint160",
+              "name": "amount",
+              "type": "uint160"
+            },
+            {
+              "internalType": "uint48",
+              "name": "expiration",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "nonce",
+              "type": "uint48"
+            }
+          ],
+          "internalType": "struct ExampleEip712.PermitDetails",
+          "name": "details",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sigDeadline",
+          "type": "uint256"
+        }
+      ],
+      "name": "PermitSingle",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "MyContract",
+    "kind": "dev",
+    "methods": {
+      "PermitBatch((address,uint160,uint48,uint48)[],address,uint256)": {
+        "custom:clearsig-date-encoding": "details.expiration=timestamp",
+        "custom:clearsig-exclude": "details.token,details.nonce,sigDeadline",
+        "custom:clearsig-format": "spender=raw details.amount=tokenAmount details.expiration=date",
+        "custom:clearsig-label": "details.amount=Amount allowance details.expiration=Approval expires",
+        "custom:clearsig-token-path": "details.amount=#.details.[].token",
+        "custom:clearsig-typed-data": "PermitBatch",
+        "params": {
+          "spender": "Spender"
+        }
+      },
+      "PermitSingle((address,uint160,uint48,uint48),address,uint256)": {
+        "custom:clearsig-date-encoding": "details.expiration=timestamp",
+        "custom:clearsig-exclude": "details.token,details.nonce,sigDeadline",
+        "custom:clearsig-format": "spender=raw details.amount=tokenAmount details.expiration=date",
+        "custom:clearsig-label": "details.amount=Amount allowance details.expiration=Approval expires",
+        "custom:clearsig-token-path": "details.amount=#.details.token",
+        "custom:clearsig-typed-data": "PermitSingle",
+        "params": {
+          "spender": "Spender"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "PermitBatch((address,uint160,uint48,uint48)[],address,uint256)": {
+        "notice": "Authorize spending of tokens"
+      },
+      "PermitSingle((address,uint160,uint48,uint48),address,uint256)": {
+        "notice": "Authorize spending of token"
+      }
+    },
+    "version": 1
+  }
+}

@@ -1,0 +1,165 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "8c8a9a5c695bd32d2c8c095fddaca88cb00a38eeaf5ca7b59944243b654436ba",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapV2Dutchorder.TokenPermissions",
+          "name": "permitted",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "reactor",
+                  "type": "address"
+                },
+                {
+                  "internalType": "address",
+                  "name": "swapper",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "nonce",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "deadline",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "additionalValidationContract",
+                  "type": "address"
+                },
+                {
+                  "internalType": "bytes",
+                  "name": "additionalValidationData",
+                  "type": "bytes"
+                }
+              ],
+              "internalType": "struct UniswapEip712UniswapV2Dutchorder.OrderInfo",
+              "name": "info",
+              "type": "tuple"
+            },
+            {
+              "internalType": "address",
+              "name": "cosigner",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "baseInputToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "baseInputStartAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "baseInputEndAmount",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "address",
+                  "name": "token",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "startAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "endAmount",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address",
+                  "name": "recipient",
+                  "type": "address"
+                }
+              ],
+              "internalType": "struct UniswapEip712UniswapV2Dutchorder.DutchOutput[]",
+              "name": "baseOutputs",
+              "type": "tuple[]"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapV2Dutchorder.V2DutchOrder",
+          "name": "witness",
+          "type": "tuple"
+        }
+      ],
+      "name": "sign0",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "custom:clearsig-owner": "Uniswap Labs",
+    "kind": "dev",
+    "methods": {
+      "sign0((address,uint256),address,uint256,uint256,((address,address,uint256,uint256,address,bytes),address,address,uint256,uint256,(address,uint256,uint256,address)[]))": {
+        "custom:clearsig-date-encoding": "deadline=timestamp",
+        "custom:clearsig-exclude": "nonce,witness.info,witness.cosigner,witness.baseInputEndAmount,witness.baseOutputs.startAmount,permitted.token,witness.baseInputToken,witness.baseOutputs.token",
+        "custom:clearsig-format": "spender=raw permitted.amount=tokenAmount witness.baseInputStartAmount=tokenAmount witness.baseOutputs.endAmount=tokenAmount witness.baseOutputs.recipient=raw deadline=date",
+        "custom:clearsig-label": "permitted.amount=Approve amount witness.baseInputStartAmount=Spend max witness.baseOutputs.endAmount=Min amount to receive witness.baseOutputs.recipient=On Address",
+        "custom:clearsig-token-path": "permitted.amount=#.permitted.token witness.baseInputStartAmount=#.witness.baseInputToken witness.baseOutputs.endAmount=token",
+        "custom:clearsig-typed-data": "PermitWitnessTransferFrom",
+        "params": {
+          "deadline": "Approval expire",
+          "spender": "Approve to spender"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "sign0((address,uint256),address,uint256,uint256,((address,address,uint256,uint256,address,bytes),address,address,uint256,uint256,(address,uint256,uint256,address)[]))": {
+        "notice": "UniswapX V2 Dutch Order"
+      }
+    },
+    "version": 1
+  }
+}

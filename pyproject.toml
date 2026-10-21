@@ -39,6 +39,7 @@ dependencies = [
     "limiter>=0.5.0",
     "eth-abi>=5.1.0",
     "case-switcher>=1.3.13",
+    "rlp>=4.1.0",
 ]
 
 [project.urls]
@@ -156,4 +157,4 @@ exclude_dirs = ["tests"]
 
 [tool.codespell]
 ignore-words = ".codespellignore"
-skip = "pdm.lock,*.ambr,specs/*.schema.json"
+skip = "pdm.lock,*.ambr,specs/*.schema.json,src/erc7730/lint/v2/*.schema.json"

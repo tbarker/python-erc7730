@@ -1,0 +1,201 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "94120f7418a11c53468e15fb7f1d42d2d107b156324c8bf3c11706c6c5c28655",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint160",
+              "name": "amount",
+              "type": "uint160"
+            },
+            {
+              "internalType": "uint48",
+              "name": "expiration",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "nonce",
+              "type": "uint48"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapPermit2.PermitDetails",
+          "name": "details",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sigDeadline",
+          "type": "uint256"
+        }
+      ],
+      "name": "sign0",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint160",
+              "name": "amount",
+              "type": "uint160"
+            },
+            {
+              "internalType": "uint48",
+              "name": "expiration",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "nonce",
+              "type": "uint48"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapPermit2.PermitDetails[]",
+          "name": "details",
+          "type": "tuple[]"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "sigDeadline",
+          "type": "uint256"
+        }
+      ],
+      "name": "sign1",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct UniswapEip712UniswapPermit2.TokenPermissions",
+          "name": "permitted",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "spender",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "nonce",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deadline",
+          "type": "uint256"
+        }
+      ],
+      "name": "sign2",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "custom:clearsig-owner": "Uniswap Labs",
+    "kind": "dev",
+    "methods": {
+      "sign0((address,uint160,uint48,uint48),address,uint256)": {
+        "custom:clearsig-date-encoding": "details.expiration=timestamp",
+        "custom:clearsig-exclude": "sigDeadline,details.token,details.nonce",
+        "custom:clearsig-format": "spender=raw details.amount=tokenAmount details.expiration=date",
+        "custom:clearsig-label": "details.amount=Amount allowance details.expiration=Approval expires",
+        "custom:clearsig-message": "details.amount=Unlimited",
+        "custom:clearsig-threshold": "details.amount=0xffffffffffffffffffffffffffffffffffffffff",
+        "custom:clearsig-token-path": "details.amount=#.details.token",
+        "custom:clearsig-typed-data": "PermitSingle",
+        "params": {
+          "spender": "Spender"
+        }
+      },
+      "sign1((address,uint160,uint48,uint48)[],address,uint256)": {
+        "custom:clearsig-date-encoding": "details.expiration=timestamp",
+        "custom:clearsig-exclude": "sigDeadline,details.token,details.nonce",
+        "custom:clearsig-format": "spender=raw details.amount=tokenAmount details.expiration=date",
+        "custom:clearsig-group": "allowances fields=(details.amount,details.expiration) iteration=sequential",
+        "custom:clearsig-label": "details.amount=Amount allowance details.expiration=Approval expires",
+        "custom:clearsig-message": "details.amount=Unlimited",
+        "custom:clearsig-threshold": "details.amount=0xffffffffffffffffffffffffffffffffffffffff",
+        "custom:clearsig-token-path": "details.amount=#.details.[].token",
+        "custom:clearsig-typed-data": "PermitBatch",
+        "params": {
+          "spender": "Spender"
+        }
+      },
+      "sign2((address,uint256),address,uint256,uint256)": {
+        "custom:clearsig-date-encoding": "deadline=timestamp",
+        "custom:clearsig-exclude": "permitted.token,nonce",
+        "custom:clearsig-format": "spender=addressName permitted.amount=tokenAmount deadline=date",
+        "custom:clearsig-intent": "Authorize token transfer",
+        "custom:clearsig-label": "permitted.amount=Amount",
+        "custom:clearsig-message": "permitted.amount=Any amount",
+        "custom:clearsig-threshold": "permitted.amount=0x8000000000000000000000000000000000000000000000000000000000000000",
+        "custom:clearsig-token-path": "permitted.amount=#.permitted.token",
+        "custom:clearsig-typed-data": "PermitTransferFrom",
+        "custom:clearsig-types": "spender=[\"contract\"]",
+        "params": {
+          "deadline": "Deadline",
+          "spender": "Spender"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "sign0((address,uint160,uint48,uint48),address,uint256)": {
+        "notice": "Authorize spending of token"
+      },
+      "sign1((address,uint160,uint48,uint48)[],address,uint256)": {
+        "notice": "Authorize spending of tokens"
+      },
+      "sign2((address,uint256),address,uint256,uint256)": {
+        "notice": "Transfer `permitted.amount`"
+      }
+    },
+    "version": 1
+  }
+}

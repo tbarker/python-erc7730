@@ -1,0 +1,91 @@
+{
+  "compilerVersion": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceSha256": "6b762d1b5d7987b05e67625bb22610fd7209a4bffe294daf4de71f436c2d23aa",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "targets",
+          "type": "address[]"
+        },
+        {
+          "internalType": "bytes[]",
+          "name": "datas",
+          "type": "bytes[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "values",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "batchExecute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address[]",
+          "name": "recipients",
+          "type": "address[]"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "percentages",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "distribute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "devdoc": {
+    "author": "Example",
+    "custom:clearsig-format": "values=raw",
+    "kind": "dev",
+    "methods": {
+      "batchExecute(address[],bytes[],uint256[])": {
+        "custom:clearsig-amount-path": "datas=\"values.[]\"",
+        "custom:clearsig-callee-path": "datas=\"targets.[]\"",
+        "custom:clearsig-format": "datas=calldata",
+        "custom:clearsig-interpolated-intent": "Execute batch calls to targets {targets} with values {values}",
+        "custom:clearsig-separator": "datas=\"Transaction {index}\"",
+        "params": {
+          "datas": "Nested Calls"
+        }
+      },
+      "distribute(address[],uint256[])": {
+        "custom:clearsig-base": "percentages=\"%\"",
+        "custom:clearsig-decimals": "percentages=2",
+        "custom:clearsig-format": "@.value=amount recipients=addressName percentages=unit",
+        "custom:clearsig-group": "fees=\"Recipients and Fees\" fields=(recipients,percentages) iteration=bundled",
+        "custom:clearsig-intent": "Distribute fees among recipients",
+        "custom:clearsig-label": "@.value=Total Distributed Amount",
+        "custom:clearsig-separator": "recipients=\"Recipient {index}\"",
+        "params": {
+          "percentages": "Percentages",
+          "recipients": "Recipients"
+        }
+      }
+    },
+    "title": "Example Array Iteration Contract",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "batchExecute(address[],bytes[],uint256[])": {
+        "notice": "Execute batch calls to targets"
+      },
+      "distribute(address[],uint256[])": {
+        "notice": "Distribute fees `percentages` among recipients `recipients`"
+      }
+    },
+    "version": 1
+  }
+}

@@ -22,6 +22,7 @@ from erc7730.common.binary import from_hex
 from erc7730.common.ledger import ledger_network_id
 from erc7730.common.options import first_not_none
 from erc7730.common.output import ConsoleOutputAdder, OutputAdder, exception_to_output
+from erc7730.convert.calldata.trusted_names import convert_name_sources
 from erc7730.convert.calldata.v1.abi import ABITree, function_to_abi_tree
 from erc7730.convert.calldata.v1.enum import convert_enums
 from erc7730.convert.calldata.v1.map import MapEntries
@@ -38,7 +39,7 @@ from erc7730.model.calldata.descriptor import (
     CalldataDescriptor,
     CalldataDescriptorV1,
 )
-from erc7730.model.calldata.types import TrustedNameSource, TrustedNameType
+from erc7730.model.calldata.types import TrustedNameType
 from erc7730.model.calldata.v1.instruction import (
     MAX_FIELD_CONSTRAINTS,
     CalldataDescriptorFieldVisibilityV1,
@@ -791,7 +792,7 @@ def _convert_v2_param(
 
         case FieldFormat.ADDRESS_NAME:
             types: list[TrustedNameType] = []
-            sources: list[TrustedNameSource] = []
+            input_sources: list[str] | None = None
             sender_addresses: list[Address] | None = None
 
             if field.params is not None:
@@ -803,26 +804,7 @@ def _convert_v2_param(
                         else:
                             types.append(TrustedNameType(input_type))
 
-                for type_ in types:
-                    match type_:
-                        case TrustedNameType.EOA | TrustedNameType.WALLET | TrustedNameType.COLLECTION:
-                            sources.append(TrustedNameSource.ENS)
-                            sources.append(TrustedNameSource.UNSTOPPABLE_DOMAIN)
-                            sources.append(TrustedNameSource.FREENAME)
-                        case TrustedNameType.SMART_CONTRACT | TrustedNameType.TOKEN:
-                            sources.append(TrustedNameSource.CRYPTO_ASSET_LIST)
-                        case TrustedNameType.CONTEXT_ADDRESS:
-                            sources.append(TrustedNameSource.DYNAMIC_RESOLVER)
-                        case _:
-                            pass
-
-                if (input_sources := getattr(address_params, "sources", None)) is not None:
-                    for input_source in input_sources:
-                        if input_source.lower() == "local":
-                            sources.append(TrustedNameSource.LOCAL_ADDRESS_BOOK)
-                            sources.append(TrustedNameSource.MULTISIG_ADDRESS_BOOK)
-                        if input_source.lower() in set(TrustedNameSource):
-                            sources.append(TrustedNameSource(input_source.lower()))
+                input_sources = getattr(address_params, "sources", None)
 
                 input_sender_addresses = getattr(address_params, "senderAddress", None)
                 if isinstance(input_sender_addresses, ResolvedValueMap):
@@ -842,8 +824,9 @@ def _convert_v2_param(
                 else:
                     sender_addresses = input_sender_addresses
 
+            if (sources := convert_name_sources(types, input_sources, out)) is None:
+                return None
             types = list(TrustedNameType) if not types else list(dict.fromkeys(types))
-            sources = list(TrustedNameSource) if not sources else list(dict.fromkeys(sources))
 
             return CalldataDescriptorParamTrustedNameV1(
                 value=value, types=types, sources=sources, sender_addresses=sender_addresses
@@ -957,6 +940,13 @@ def _convert_v2_param(
             return CalldataDescriptorParamDatetimeV1(value=value, date_type=date_type)
 
         case FieldFormat.AMOUNT:
+            if field.params is not None and any(
+                getattr(field.params, name, None) is not None for name in ("threshold", "message")
+            ):
+                return out.error(
+                    title="Unsupported native amount parameters",
+                    message="Legacy export cannot preserve native amount threshold/message parameters.",
+                )
             return CalldataDescriptorParamAmountV1(value=value)
 
         case FieldFormat.TOKEN_TICKER:

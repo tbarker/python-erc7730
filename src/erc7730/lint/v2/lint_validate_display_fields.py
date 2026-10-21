@@ -1,12 +1,6 @@
-"""
-V2 linter that validates display fields against reference ABIs fetched from Sourcify or Etherscan.
+"""Compare V2 display paths with reference ABIs."""
 
-In v2, ABI and EIP-712 schemas are NOT embedded in the descriptor. Instead:
-  - For contract context: fetch ABI from Sourcify or Etherscan, validate display field paths match ABI params,
-    and check selector exhaustiveness.
-  - For EIP-712 context: no schema to validate against (no-op).
-"""
-
+from collections.abc import Sequence
 from typing import final, override
 
 from erc7730.common import client
@@ -14,9 +8,8 @@ from erc7730.common.abi import compute_signature, get_functions, parse_signature
 from erc7730.common.output import OutputAdder
 from erc7730.lint.v2 import ERC7730Linter
 from erc7730.lint.v2.path_schemas import compute_format_schema_paths
-from erc7730.model.abi import Function
+from erc7730.model.abi import Component, Function, InputOutput
 from erc7730.model.input.v2.descriptor import InputERC7730Descriptor
-from erc7730.model.paths import DataPath, Field
 from erc7730.model.paths.path_ops import data_path_starts_with
 from erc7730.model.paths.path_schemas import compute_abi_schema_paths
 from erc7730.model.resolved.v2.context import ResolvedContractContext, ResolvedEIP712Context
@@ -25,18 +18,7 @@ from erc7730.model.resolved.v2.descriptor import ResolvedERC7730Descriptor
 
 @final
 class ValidateDisplayFieldsLinter(ERC7730Linter):
-    """
-    Validates display fields against reference ABIs fetched from Sourcify or Etherscan.
-
-    For contract context:
-      - Fetches ABI from Sourcify or Etherscan for each deployment
-      - Validates that display field paths exist in the ABI
-      - Validates that all ABI function params have display fields
-      - Checks that all selectors in the ABI have corresponding display formats
-
-    For EIP-712 context:
-      - No schema available in v2 resolved model, so no validation is performed
-    """
+    """Validate declared paths/types offline and check declared fields against reference ABIs when available."""
 
     @override
     def lint(
@@ -44,7 +26,7 @@ class ValidateDisplayFieldsLinter(ERC7730Linter):
     ) -> None:
         match descriptor.context:
             case ResolvedEIP712Context():
-                pass  # no schema to validate against in v2
+                pass  # no ABI comparison for EIP-712 messages
             case ResolvedContractContext():
                 self._validate_contract_display_fields(input_descriptor, descriptor, out)
 
@@ -76,7 +58,7 @@ class ValidateDisplayFieldsLinter(ERC7730Linter):
 
             reference_abis = get_functions(abis)
             try:
-                explorer_url = client.get_contract_explorer_url(deployment.chainId, deployment.address)
+                explorer_url = str(client.get_contract_explorer_url(deployment.chainId, deployment.address))
             except NotImplementedError:
                 explorer_url = f"<chain id {deployment.chainId} address {deployment.address}>"
             break
@@ -90,13 +72,13 @@ class ValidateDisplayFieldsLinter(ERC7730Linter):
                 message=f"Contract {explorer_url} is likely to be a proxy, validation of display fields skipped",
             )
 
-        # Build ABI paths by selector
-        abi_paths_by_selector: dict[str, set[DataPath]] = {}
-        for selector, abi in reference_abis.functions.items():
-            abi_paths_by_selector[selector] = compute_abi_schema_paths(abi)
-
-        # Parse the input format keys, which carry the parameter names resolution reduced to selectors
+        # The declared names also identify unnamed tuple members in the reference
+        # ABI. Preserve reference names where present, filling only blank names.
         declared_abis_by_selector = parse_declared_abis(input_descriptor)
+        abi_paths_by_selector = {
+            selector: compute_abi_schema_paths(cls._with_declared_names(abi, declared_abis_by_selector.get(selector)))
+            for selector, abi in reference_abis.functions.items()
+        }
 
         # Validate display field paths against ABI paths
         for selector, fmt in descriptor.display.formats.items():
@@ -110,17 +92,12 @@ class ValidateDisplayFieldsLinter(ERC7730Linter):
 
             format_paths = compute_format_schema_paths(fmt)
             abi_paths = abi_paths_by_selector[selector]
-            unnamed_parameter_names = cls._unnamed_parameter_names(
-                reference_abis.functions[selector], declared_abis_by_selector.get(selector)
-            )
 
             # Check for display fields referencing non-existent ABI paths.
             # A format path is valid if it matches an ABI path exactly OR is a prefix of one
             # (e.g. defining a field for an array root covers all nested elements).
             for path in format_paths.data_paths - abi_paths:
                 if not any(data_path_starts_with(abi_path, path) for abi_path in abi_paths):
-                    if cls._root_name(path) in unnamed_parameter_names:
-                        continue
                     out.error(
                         title="Invalid display field",
                         message=f"A display field is defined for `{path}`, but it does not exist in function "
@@ -148,39 +125,28 @@ class ValidateDisplayFieldsLinter(ERC7730Linter):
                 )
 
     @classmethod
-    def _unnamed_parameter_names(cls, abi: Function, declared_abi: Function | None) -> set[str]:
-        """
-        Get the names the descriptor gave to the parameters the reference ABI left unnamed.
+    def _with_declared_names(cls, abi: Function, declared: Function | None) -> Function:
+        if declared is None or compute_signature(abi) != compute_signature(declared):
+            return abi
 
-        Unnamed parameters carry an empty name in the reference ABI, so no path is computed for them. The descriptor
-        names them in its format key, and such a name is only valid at the position it is declared at.
+        def merge(
+            parameters: Sequence[InputOutput | Component], names: Sequence[InputOutput | Component]
+        ) -> list[InputOutput | Component]:
+            result: list[InputOutput | Component] = []
+            for parameter, named in zip(parameters, names, strict=True):
+                result.append(
+                    parameter.model_copy(
+                        update={
+                            "name": parameter.name or named.name,
+                            "components": merge(parameter.components, named.components)
+                            if parameter.components is not None and named.components is not None
+                            else parameter.components,
+                        }
+                    )
+                )
+            return result
 
-        :param abi: reference ABI of the function, as fetched from the explorer
-        :param declared_abi: ABI declared by the descriptor format key, if it was a signature and not a selector
-        :return: declared names of the parameters the reference ABI leaves unnamed
-        """
-        if declared_abi is None:
-            return set()
-        parameters, declared_parameters = abi.inputs or [], declared_abi.inputs or []
-        if len(parameters) != len(declared_parameters):
-            return set()  # not expected, as both share the same selector
-        return {
-            declared_parameter.name
-            for parameter, declared_parameter in zip(parameters, declared_parameters, strict=True)
-            if not parameter.name and declared_parameter.name
-        }
-
-    @classmethod
-    def _root_name(cls, path: DataPath) -> str | None:
-        """
-        Get the identifier of the first element of a data path, if it is a field.
-
-        :param path: data path to inspect
-        :return: the top-level field identifier, or None if the path does not start with a field
-        """
-        if path.elements and isinstance(root := path.elements[0], Field):
-            return root.identifier
-        return None
+        return abi.model_copy(update={"inputs": merge(abi.inputs or [], declared.inputs or [])})
 
 
 def parse_declared_abis(input_descriptor: InputERC7730Descriptor) -> dict[str, Function]:

@@ -15,26 +15,31 @@ def reference_abi(*names: str) -> Function:
     )
 
 
-def unnamed_parameter_names(abi: Function, declared_abi: Function | None = DECLARED) -> set[str]:
-    return ValidateDisplayFieldsLinter._unnamed_parameter_names(abi, declared_abi)
+def parameter_names(abi: Function, declared_abi: Function | None = DECLARED) -> list[str]:
+    merged = ValidateDisplayFieldsLinter._with_declared_names(abi, declared_abi)
+    return [parameter.name for parameter in merged.inputs or []]
 
 
 def test_name_declared_at_an_unnamed_position_is_accepted() -> None:
-    assert unnamed_parameter_names(reference_abi("", "onBehalfOf", "referralCode")) == {"pool"}
+    assert parameter_names(reference_abi("", "onBehalfOf", "referralCode")) == ["pool", "onBehalfOf", "referralCode"]
 
 
 def test_name_declared_at_a_named_position_is_not_accepted() -> None:
     """`pool` is declared at position 0, which the reference ABI names `p`, so `#.pool` stays invalid."""
-    assert unnamed_parameter_names(reference_abi("p", "", "referralCode")) == {"onBehalfOf"}
+    assert parameter_names(reference_abi("p", "", "referralCode")) == ["p", "onBehalfOf", "referralCode"]
 
 
 def test_no_name_is_accepted_when_the_reference_abi_names_every_parameter() -> None:
-    assert unnamed_parameter_names(reference_abi("pool", "onBehalfOf", "referralCode")) == set()
+    assert parameter_names(reference_abi("pool", "onBehalfOf", "referralCode")) == [
+        "pool",
+        "onBehalfOf",
+        "referralCode",
+    ]
 
 
 def test_every_declared_name_is_accepted_when_the_reference_abi_names_nothing() -> None:
-    assert unnamed_parameter_names(reference_abi("", "", "")) == {"pool", "onBehalfOf", "referralCode"}
+    assert parameter_names(reference_abi("", "", "")) == ["pool", "onBehalfOf", "referralCode"]
 
 
 def test_no_name_is_accepted_when_the_format_key_is_a_selector() -> None:
-    assert unnamed_parameter_names(reference_abi("", "", ""), declared_abi=None) == set()
+    assert parameter_names(reference_abi("", "", ""), declared_abi=None) == ["", "", ""]

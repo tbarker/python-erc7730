@@ -31,6 +31,8 @@ repos:
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
+        # Pinned source bytes are checked by fixture provenance tests.
+        exclude: ^tests/generate/natspec/data/(upstream_examples|registry_uniswap)/upstream/
       - id: forbid-new-submodules
       - id: mixed-line-ending
       - id: fix-byte-order-marker
@@ -81,6 +83,7 @@ repos:
       - id: mypy
         name: lint code typing (mypy)
         additional_dependencies:
+          - types-jsonschema
           - pandas-stubs
           - types-docutils
           - types-PyYAML

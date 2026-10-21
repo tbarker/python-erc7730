@@ -5,10 +5,12 @@ Specification: https://github.com/LedgerHQ/clear-signing-erc7730-registry/tree/m
 JSON schema: https://github.com/LedgerHQ/clear-signing-erc7730-registry/blob/master/specs/erc7730-v2.schema.json
 """
 
-from typing import Annotated, ForwardRef, Literal, Self
+from collections.abc import Iterator
+from typing import Annotated, Any, ForwardRef, Literal, Self
 
-from pydantic import Discriminator, Field, Tag, model_validator
+from pydantic import BaseModel, Discriminator, Field, Tag, model_validator
 
+from erc7730.common.solidity_types import PlaintextType
 from erc7730.model.base import Model
 from erc7730.model.display import (
     AddressNameType,
@@ -129,7 +131,26 @@ class ResolvedFieldBase(Model):
         return self
 
 
-class ResolvedTokenAmountParameters(Model):
+class ResolvedAmountParameters(Model):
+    """Native amount threshold and message parameters."""
+
+    threshold: HexStr | int | None = Field(
+        default=None,
+        title="Unlimited Threshold",
+        description=(
+            "The resolved threshold at or above which the amount should be displayed using the message parameter "
+            "rather than the real amount (encoded as an int or byte array)."
+        ),
+    )
+
+    message: str | None = Field(
+        default=None,
+        title="Unlimited Message",
+        description="The resolved message to display when the amount is at or above the threshold.",
+    )
+
+
+class ResolvedTokenAmountParameters(ResolvedAmountParameters):
     """
     Token Amount Formatting Parameters (resolved).
     """
@@ -147,21 +168,6 @@ class ResolvedTokenAmountParameters(Model):
         title="Native Currency Address",
         description="An address or array of resolved addresses, any of which are interpreted as an amount in native "
         "currency rather than a token.",
-    )
-
-    threshold: HexStr | int | None = Field(
-        default=None,
-        title="Unlimited Threshold",
-        description=(
-            "The resolved threshold above which the amount should be displayed using the message parameter "
-            "rather than the real amount (encoded as an int or byte array)."
-        ),
-    )
-
-    message: str | None = Field(
-        default=None,
-        title="Unlimited Message",
-        description="The resolved message to display when the amount is above the threshold.",
     )
 
     chainId: int | ResolvedValueMap | None = Field(
@@ -381,7 +387,7 @@ class ResolvedEncryptionParameters(Model):
         description="The encryption scheme used to produce the handle.",
     )
 
-    plaintextType: str | None = Field(
+    plaintextType: PlaintextType | None = Field(
         default=None,
         title="Plaintext Type",
         description="Solidity type of the decrypted value (the handle does not encode this).",
@@ -398,6 +404,7 @@ ResolvedFieldParameters = Annotated[
     Annotated[ResolvedAddressNameParameters, Tag("address_name")]
     | Annotated[ResolvedInteroperableAddressNameParameters, Tag("interoperable_address_name")]
     | Annotated[ResolvedCallDataParameters, Tag("call_data")]
+    | Annotated[ResolvedAmountParameters, Tag("amount")]
     | Annotated[ResolvedTokenAmountParameters, Tag("token_amount")]
     | Annotated[ResolvedTokenTickerParameters, Tag("token_ticker")]
     | Annotated[ResolvedNftNameParameters, Tag("nft_name")]
@@ -412,6 +419,41 @@ class ResolvedFieldDefinition(Model):
     """
     A resolved field formatter, containing formatting information of a single field in a message.
     """
+
+    @model_validator(mode="before")
+    @classmethod
+    def _parameters_for_format(cls, data: Any) -> Any:
+        if not isinstance(data, dict) or data.get("format") is None:
+            return data
+        if data.get("params") is None:
+            if data["format"] in (
+                FieldFormat.CALL_DATA,
+                FieldFormat.NFT_NAME,
+                FieldFormat.DATE,
+                FieldFormat.UNIT,
+                FieldFormat.ENUM,
+            ):
+                raise ValueError(f"Format {data['format']} requires parameters")
+            return data
+        parameter_models: dict[str, type[Model]] = {
+            FieldFormat.ADDRESS_NAME: ResolvedAddressNameParameters,
+            FieldFormat.INTEROPERABLE_ADDRESS_NAME: ResolvedInteroperableAddressNameParameters,
+            FieldFormat.CALL_DATA: ResolvedCallDataParameters,
+            FieldFormat.AMOUNT: ResolvedAmountParameters,
+            FieldFormat.TOKEN_AMOUNT: ResolvedTokenAmountParameters,
+            FieldFormat.TOKEN_TICKER: ResolvedTokenTickerParameters,
+            FieldFormat.NFT_NAME: ResolvedNftNameParameters,
+            FieldFormat.DATE: ResolvedDateParameters,
+            FieldFormat.UNIT: ResolvedUnitParameters,
+            FieldFormat.ENUM: ResolvedEnumParameters,
+        }
+        model = parameter_models.get(data["format"])
+        if model is None:
+            raise ValueError(f"Format {data['format']} does not accept parameters")
+        params = data["params"]
+        if isinstance(params, BaseModel):
+            params = params.model_dump(by_alias=True, exclude_none=True)
+        return data | {"params": model.model_validate(params, strict=False)}
 
     id: Id | None = Field(
         alias="$id",
@@ -572,3 +614,12 @@ class ResolvedDisplay(Model):
         if self.definitions is not None:
             raise ValueError("Definitions must be None after resolution: all references should have been inlined.")
         return self
+
+
+def iter_field_descriptions(fields: list[ResolvedField]) -> Iterator[ResolvedFieldDescription]:
+    """Visit resolved leaves in display order, descending through groups."""
+    for field in fields:
+        if isinstance(field, ResolvedFieldGroup):
+            yield from iter_field_descriptions(field.fields)
+        else:
+            yield field

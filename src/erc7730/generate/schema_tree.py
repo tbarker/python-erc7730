@@ -1,9 +1,9 @@
 from abc import ABC
-from typing import assert_never
+from collections.abc import Sequence
+from typing import Any, assert_never
 
-import eth_abi
 from eip712.model.schema import EIP712SchemaField, EIP712Type
-from eth_abi.grammar import BasicType, TupleType
+from eth_abi.grammar import BasicType, TupleType, parse
 from pydantic import Field
 
 from erc7730.common.abi import ABIDataType
@@ -34,6 +34,7 @@ class SchemaLeaf(SchemaNode):
     data_type: ABIDataType = Field(title="Data type")
 
 
+#: A struct, array, or scalar node in an ABI or EIP-712 schema.
 SchemaTree = SchemaStruct | SchemaArray | SchemaLeaf
 
 
@@ -50,11 +51,11 @@ def eip712_schema_to_tree(schema: EIP712Schema) -> SchemaTree:
     if (primary_type_fields := schema.types.get(schema.primaryType)) is None:
         raise ValueError("Primary type not found in schema types")
 
-    return _eip712_struct_type_to_tree(fields=primary_type_fields, types=schema.types)
+    return _eip712_struct_type_to_tree(fields=primary_type_fields, types=schema.types, active=(schema.primaryType,))
 
 
 def _eip712_struct_type_to_tree(
-    fields: list[EIP712SchemaField], types: dict[EIP712Type, list[EIP712SchemaField]]
+    fields: list[EIP712SchemaField], types: dict[EIP712Type, list[EIP712SchemaField]], active: tuple[str, ...]
 ) -> SchemaTree:
     """
     Convert a complex EIP-712 type to a schema tree node (can be the primary type directly).
@@ -63,10 +64,12 @@ def _eip712_struct_type_to_tree(
     :param types: all schema types
     :return: Schema tree
     """
-    return SchemaStruct(components={field.name: _eip712_field_to_tree(field, types) for field in fields})
+    return SchemaStruct(components={field.name: _eip712_field_to_tree(field, types, active) for field in fields})
 
 
-def _eip712_field_to_tree(field: EIP712SchemaField, types: dict[EIP712Type, list[EIP712SchemaField]]) -> SchemaTree:
+def _eip712_field_to_tree(
+    field: EIP712SchemaField, types: dict[EIP712Type, list[EIP712SchemaField]], active: tuple[str, ...]
+) -> SchemaTree:
     """
     Convert an EIP-712 type to a schema tree node.
 
@@ -74,31 +77,54 @@ def _eip712_field_to_tree(field: EIP712SchemaField, types: dict[EIP712Type, list
     :param types: all schema types
     :return: Schema tree
     """
-    match eth_abi.grammar.parse(field.type):
+    # EIP-712 identifiers may contain digits anywhere (e.g. V2DutchOrder).
+    # eth_abi parses Solidity primitive widths, not arbitrary struct identifiers.
+    base = field.type.split("[", 1)[0]
+    if base in types:
+        if base in active:
+            raise ValueError(
+                "Recursive EIP-712 schemas cannot be expanded into a finite display tree: "
+                + " -> ".join((*active, base))
+                + ". Write a v2 descriptor manually with bounded field paths."
+            )
+        component = _eip712_struct_type_to_tree(types[base], types, (*active, base))
+        for _ in range(field.type.count("[")):
+            component = SchemaArray(component=component)
+        return component
+
+    match parse(field.type):
         case TupleType():
-            return _eip712_struct_type_to_tree(types[field.type], types)
+            return _eip712_struct_type_to_tree(types[field.type], types, active)
 
         case BasicType() as tp:
             if tp.is_array:
                 match tp.base:
                     case "tuple" | "struct":
-                        component = _eip712_struct_type_to_tree(types[field.type], types)
+                        component = _eip712_struct_type_to_tree(types[field.type], types, active)
                     case _:
                         component = _eip712_field_to_tree(
-                            field=field.model_copy(update={"type": tp.item_type.to_type_str()}), types=types
+                            field=field.model_copy(update={"type": tp.item_type.to_type_str()}),
+                            types=types,
+                            active=active,
                         )
 
                 return SchemaArray(component=component)
 
             match tp.base:
                 case "tuple" | "struct":
-                    return _eip712_struct_type_to_tree(types[field.type], types)
+                    return _eip712_struct_type_to_tree(types[field.type], types, active)
                 case base if base in set(ABIDataType):
                     type_family = ABIDataType(base)
                 case base_type:
                     if (base_type_fields := types.get(base_type)) is None:
                         raise Exception(f"Unexpected EIP-712 type: {base_type}")
-                    return _eip712_struct_type_to_tree(base_type_fields, types)
+                    if base_type in active:
+                        raise ValueError(
+                            "Recursive EIP-712 schemas cannot be expanded into a finite display tree: "
+                            + " -> ".join((*active, base_type))
+                            + ". Write a v2 descriptor manually with bounded field paths."
+                        )
+                    return _eip712_struct_type_to_tree(base_type_fields, types, (*active, base_type))
 
             return SchemaLeaf(data_type=type_family)
 
@@ -116,7 +142,7 @@ def abi_function_to_tree(function: Function) -> SchemaTree:
     :param function: function ABI
     :return: Schema tree
     """
-    return _abi_struct_component_to_tree(function)
+    return _abi_struct_component_to_tree(name_unnamed_inputs(function))
 
 
 def _abi_struct_component_to_tree(inp: Function | InputOutput | Component) -> SchemaTree:
@@ -156,7 +182,7 @@ def _abi_component_to_tree(inp: InputOutput | Component) -> SchemaTree:
     :param inp: ABI element (can be a single component, or a function input)
     :return: Schema tree
     """
-    match eth_abi.grammar.parse(inp.type):
+    match parse(inp.type):
         case TupleType() as tp:
             if tp.is_array:
                 # Handle multidimensional tuple arrays (e.g., tuple[][], tuple[][][])
@@ -183,3 +209,48 @@ def _abi_component_to_tree(inp: InputOutput | Component) -> SchemaTree:
 
         case unknown:
             raise Exception(f"Unexpected ABI type: {type(unknown)}")
+
+
+def eip712_encode_type(schema: EIP712Schema) -> str:
+    """Encode reachable EIP-712 types with dependencies in alphabetical order."""
+    visited: set[str] = set()
+
+    def visit(name: str) -> None:
+        if name in visited:
+            return
+        visited.add(name)
+        for field in schema.types[name]:
+            child = field.type.split("[", 1)[0]
+            if child in schema.types:
+                visit(child)
+
+    visit(schema.primaryType)
+    return "".join(
+        name + "(" + ",".join(f"{field.type} {field.name}" for field in schema.types[name]) + ")"
+        for name in [schema.primaryType, *sorted(visited - {schema.primaryType})]
+    )
+
+
+def name_unnamed_inputs(function: Function) -> Function:
+    """Assign stable, collision-free names to positional ABI inputs and tuple members."""
+
+    def named(components: Sequence[InputOutput | Component]) -> list[InputOutput | Component]:
+        names = [component.name for component in components if component.name]
+        if len(names) != len(set(names)):
+            raise ValueError(f"Duplicate ABI parameter names in {function.name}.")
+        used = set(names)
+        result: list[InputOutput | Component] = []
+        for index, component in enumerate(components):
+            name = component.name
+            if not name:
+                name = f"_arg{index}"
+                while name in used:
+                    name = "_" + name
+                used.add(name)
+            updates: dict[str, Any] = {"name": name}
+            if component.components is not None:
+                updates["components"] = named(component.components)
+            result.append(component.model_copy(update=updates))
+        return result
+
+    return function.model_copy(update={"inputs": named(function.inputs or [])})
